@@ -1,0 +1,16 @@
+numpy
+pandas
+matplotlib
+plotly
+scikit-learn
+jupyter
+tensorflow
+opencv-python
+sphinx
+pytest
+tqdm
+mpl-point-clicker
+torch
+torchvision 
+torchaudio
+ultralytics
