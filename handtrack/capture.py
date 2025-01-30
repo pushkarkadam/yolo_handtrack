@@ -1,4 +1,5 @@
 import cv2
+import os
 
 
 def get_video_frames(video_path, image_format=None, resize=(1280, 720)):
@@ -48,3 +49,26 @@ def get_video_frames(video_path, image_format=None, resize=(1280, 720)):
         return new_frames
 
     return frames
+
+def convert_video_to_images(video_path, save_path):
+    """Saves each frame of the video as an image
+    
+    Parameters
+    ----------
+    video_path: str
+        Path to the location of the video.
+    save_path: str
+        Path to where the images need to be saved.
+
+    """
+
+    frames = get_video_frames(video_path)
+
+    if not os.path.exists(save_path):
+        os.makedirs(save_path)
+
+    image_paths = [os.path.join(save_path, str(i) + ".png") for i in range(len(frames))]
+
+    for frame, image_path in zip(frames, image_paths):
+        cv2.imwrite(image_path, frames)
+        
