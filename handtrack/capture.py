@@ -70,5 +70,56 @@ def convert_video_to_images(video_path, save_path):
     image_paths = [os.path.join(save_path, str(i) + ".png") for i in range(len(frames))]
 
     for frame, image_path in zip(frames, image_paths):
-        cv2.imwrite(image_path, frames)
+        cv2.imwrite(image_path, frame)
         
+def reduce_fps(video_file, save_path, fps=3):
+    """Reduces FPS of the video.
+    
+    Parameters
+    ----------
+    video_files: str
+        Path to the video file.
+    save_path: str
+        Path where the images will be saved.
+        ``save_path`` provides the parent directory.
+        ``images`` directory will be created as a child and the images with ``.png`` format will be stored inside the child directory.
+    fps: int, default ``3``
+        Frames per second to convert the video.
+        
+    """
+    vidcap = cv2.VideoCapture(video_file)
+    assert vidcap.isOpened()
+
+    frames = []
+
+    fps_in = vidcap.get(cv2.CAP_PROP_FPS)
+
+    index_in = -1
+    index_out = -1
+
+    while True:
+        success = vidcap.grab()
+        if not success:
+            break
+        index_in += 1
+
+        out_due = int(index_in / fps_in * fps)
+
+        if out_due > index_out:
+            success, frame = vidcap.retrieve()
+            if not success:
+                break
+            index_out += 1
+
+            frames.append(frame)
+
+    save_dir = os.path.join(save_path, "images")
+
+    if not os.path.exists(save_dir):
+        os.makedirs(save_dir)
+        print(f"{save_dir} created.")
+    else:
+        print(f"{save_dir} already exists.")
+
+    for idx, frame in enumerate(frames):
+        cv2.imwrite(f"{save_dir}/{idx}.png", frame)
