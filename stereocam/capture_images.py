@@ -191,7 +191,7 @@ def initialise_camera(cap):
             print('\033[91m' + "Camera failed to start!")
             break
 
-def record_stereo(output_path, camera_number, width, height):
+def record_stereo(output_path, camera_number, width, height, fps=10, save_images=False):
     """Records stereo videos.
     
     Parameters
@@ -248,9 +248,22 @@ def record_stereo(output_path, camera_number, width, height):
     initialise_camera(cap)
 
     # Create video writers for left and right cameras
-    left_writer = cv2.VideoWriter(os.path.join(path_left, 'left.avi'), cv2.VideoWriter_fourcc(*'XVID'), 30, (width // 2, height))
-    right_writer = cv2.VideoWriter(os.path.join(path_right, 'right.avi'), cv2.VideoWriter_fourcc(*'XVID'), 30, (width // 2, height))
+    left_writer = cv2.VideoWriter(os.path.join(path_left, 'left.avi'), cv2.VideoWriter_fourcc(*'XVID'), fps, (width // 2, height))
+    right_writer = cv2.VideoWriter(os.path.join(path_right, 'right.avi'), cv2.VideoWriter_fourcc(*'XVID'), fps, (width // 2, height))
 
+    
+    # Creates "images" directory inside the stereo left and right directory
+    if save_images:
+        left_images_path = os.path.join(path_left, "images")
+        right_images_path = os.path.join(path_right, "images")
+
+        if not os.path.exists(left_images_path):
+            os.makedirs(left_images_path)
+        if not os.path.exists(right_images_path):
+            os.makedirs(right_images_path)
+
+    # Counts the frame
+    frame_counter = 0
 
     while cap.isOpened():
         # Read frames from the stereo camera
@@ -264,6 +277,13 @@ def record_stereo(output_path, camera_number, width, height):
         left_frame = frame[:, :width // 2, :]
         right_frame = frame[:, width // 2:, :]
 
+        if save_images:
+            left_image_save_path = os.path.join(left_images_path, str(frame_counter) + ".png")
+            right_image_save_path = os.path.join(right_images_path, str(frame_counter) + ".png")
+
+            cv2.imwrite(left_image_save_path, left_frame)
+            cv2.imwrite(right_image_save_path, right_frame)
+
         # Write frames to the corresponding video writers
         left_writer.write(left_frame)
         right_writer.write(right_frame)
@@ -275,6 +295,8 @@ def record_stereo(output_path, camera_number, width, height):
         # Break the loop if 'q' is pressed
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
+        
+        frame_counter += 1
 
     # Release the video capture and video writers
     cap.release()

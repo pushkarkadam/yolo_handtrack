@@ -85,7 +85,7 @@ class YOLOHandPose:
         except Exception as e:
             print(e)
                      
-    def _extract_results(self, frame):
+    def _extract_results(self, frame, verbose=False):
         """Extracts results.
         
         Parameters
@@ -95,7 +95,7 @@ class YOLOHandPose:
             
         """
         # Using YOLO model to predict
-        result = self.model(frame)
+        result = self.model(frame, verbose=verbose)
         
         # Appending results
         self.results.append(result)
@@ -141,10 +141,10 @@ class YOLOHandPose:
             xy_temp.append(xy)
         self.xy.append(xy_temp)
     
-    def process(self):
+    def process(self, verbose=False):
         """Processes the video frames.""" 
         for frame in self.frames:
-            self._extract_results(frame)
+            self._extract_results(frame, verbose=verbose)
             
     def render_pose(self, 
                     font_color=(0, 0, 0),
