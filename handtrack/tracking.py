@@ -92,7 +92,7 @@ def load_tracks(stereo_dataloader, model_path, cam_data_path, confidence_thresho
 
     return detection_track
 
-def generate_depth_map(stereo_dataloader, cam_data_path):
+def generate_depth_map(stereo_dataloader, cam_data_path, disparity_config_file):
     """Generates depth map using first frame of the video.
     
     Parameters
@@ -101,6 +101,8 @@ def generate_depth_map(stereo_dataloader, cam_data_path):
         Dataloader from PyTorch that loads batch of images.
     cam_data_path: str
         Path to stereo calibration data. 
+    disparity_config_file: str
+        Path to the disparity config file. The file type must be a YAML.
 
     Returns
     -------
@@ -140,11 +142,16 @@ def generate_depth_map(stereo_dataloader, cam_data_path):
     
     # image rectification - bgr
     bgrRectL, bgrRectR = sc.depth_estimation.rectify_images(imageL, imageR, stereoMapL, stereoMapR)
+
+    # Getting depth estimation disparity params from config file
+    disp_params = sc.helpers.load_stereo_params(disparity_config_file)
     
     # Depth maps generation
     disparity, camera_projection, depth_map, left_cut = sc.depth_estimation.depth_maps(imageL=rectL, 
                                                                                        imageR=rectR, 
-                                                                                       Q=calib_data['Q'])
+                                                                                       Q=calib_data['Q'],
+                                                                                       **disp_params
+                                                                                      )
 
     pcd = sc.depth_estimation.point_cloud(bgrRectL, 
                                          depth_limits=(0, 0.5), 
