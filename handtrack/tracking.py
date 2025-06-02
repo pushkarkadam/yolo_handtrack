@@ -2,6 +2,7 @@ import numpy as np
 import cv2
 import sys 
 import yaml
+from tqdm import tqdm
 
 sys.path.append("../")
 
@@ -56,8 +57,8 @@ def load_tracks(stereo_dataloader, model_path, cam_data_path, confidence_thresho
     detection_track = []
 
     for left_images, right_images, image_names in tqdm(stereo_dataloader):
-        left_frames = frames_torch_to_numpy(left_images)
-        right_frames = frames_torch_to_numpy(right_images)
+        left_frames = ht.helpers.frames_torch_to_numpy(left_images)
+        right_frames = ht.helpers.frames_torch_to_numpy(right_images)
 
         # Rectification
         left_frames_rect = []
@@ -71,7 +72,7 @@ def load_tracks(stereo_dataloader, model_path, cam_data_path, confidence_thresho
             right_frames_rect.append(right_frame_rect)
 
         # YOLO-handpose detection
-        render = YOLOHandPose(frames=left_frames_rect, model_path=model_path, confidence_threshold=confidence_threshold)
+        render = ht.pose_track.YOLOHandPose(frames=left_frames_rect, model_path=model_path, confidence_threshold=confidence_threshold)
 
         # Processing all the frames
         render.process(verbose=verbose)
@@ -169,3 +170,79 @@ def generate_depth_map(stereo_dataloader, cam_data_path, disparity_config_file):
                  }
     
     return depth_data
+
+def tracking_estimator(data_path, 
+                       model_path, 
+                       cam_data_path, 
+                       disparity_config_file,
+                       num_workers=4,
+                       transform_data=None,
+                       image_batch_size=4,
+                       confidence_threshold=0.2, 
+                       KP=8, 
+                       verbose=False
+                       ):
+    """An integrated function that performs two main functions:
+
+    1) load tracks
+    2) Generate point clouds
+
+    Parameters
+    ----------
+    data_path: str
+        Path to the directory where the video frames for stereo are stored.
+        The path will consists of ``stereo_left`` > ``images`` and ``stereo_right`` > ``images``
+    model_path: str
+        Path to model path.
+    cam_data_path: str
+        Path to stereo calibration data. 
+    disparity_config_file: str
+        Path to the disparity config file. The file type must be a YAML.
+    num_workers: int, default ``4``
+        Number of multi-threaded processes.
+    transform_data: int, default ``None``
+        Provide a transformation such as resizing the image.
+        Use ``transforms`` from ``torchvision``.
+    image_batch_size: int, default ``4``
+        Denotes the number of images loaded at the time.
+    confidence_threshold: float, default ``0.2``
+        The confidence threshold for detection.
+    KP: int, default ``8``
+        Keypoint index to track. ``8`` indicates the tip of the index finger.
+    verbose: bool, default ``False``
+        If ``True``, then prints out the detection results in the console.
+
+    Returns
+    -------
+    detection: list
+        A list of tuples of the coordinates of the key point being tracked.
+    depth_data: dict
+        A dictionary with keys: disparity, camera_projection, depth_map, left_cut, pcd.
+    
+    """
+    # Path to the stereo image files
+    save_path_left = os.path.join(data_path, "stereo_left", "images")
+    save_path_right = os.path.join(data_path, "stereo_right", "images")
+
+    # Create a dataset object
+    stereo_pairs_data = ht.dataset.LoadStereoPairs(left_dir=save_path_left, right_dir=save_path_right, transform=transform_data)
+
+    # Create a dataloader
+    stereo_dataloader = torch.utils.data.DataLoader(stereo_pairs_data, batch_size=image_batch_size, num_workers=num_workers)
+
+    # Load tracks
+    detections = load_tracks(stereo_dataloader=stereo_dataloader,
+                             model_path=model_path, 
+                             cam_data_path=cam_data_path,
+                             confidence_threshold=confidence_threshold,
+                             KP=KP,
+                             verbose=verbose
+                            )
+    # Generating point cloud from first frame of stereo pairs
+    depth_data = ht.tracking.generate_depth_map(stereo_dataloader=stereo_dataloader,
+                                                cam_data_path=cam_data_path,
+                                                disparity_config_file=disparity_config_file
+                                                )
+
+    # Return the data
+    return detections, depth_data
