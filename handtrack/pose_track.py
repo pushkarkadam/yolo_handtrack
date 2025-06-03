@@ -60,7 +60,7 @@ class YOLOHandPose:
         Save image/video depending on the number of images in ``frames``.
     
     """
-    def __init__(self, frames=[], model_path='../models/freiHand0.pt', confidence_threshold=0.7):
+    def __init__(self, frames=[], model_path='../models/freiHand0.pt', confidence_threshold=0.7, **yolo_kw):
         self.frames = frames
         self.model_path = model_path
         self.confidence_threshold = confidence_threshold
@@ -78,6 +78,7 @@ class YOLOHandPose:
         self.confidence = []
         self.detections = []
         self.class_map = None
+        self.yolo_kw = yolo_kw
         
         # Importing weights using YOLO
         try:
@@ -85,7 +86,7 @@ class YOLOHandPose:
         except Exception as e:
             print(e)
                      
-    def _extract_results(self, frame, verbose=False):
+    def _extract_results(self, frame):
         """Extracts results.
         
         Parameters
@@ -95,7 +96,7 @@ class YOLOHandPose:
             
         """
         # Using YOLO model to predict
-        result = self.model(frame, verbose=verbose)
+        result = self.model(frame, **self.yolo_kw)
         
         # Appending results
         self.results.append(result)
@@ -141,10 +142,10 @@ class YOLOHandPose:
             xy_temp.append(xy)
         self.xy.append(xy_temp)
     
-    def process(self, verbose=False):
+    def process(self):
         """Processes the video frames.""" 
         for frame in self.frames:
-            self._extract_results(frame, verbose=verbose)
+            self._extract_results(frame)
             
     def render_pose(self, 
                     font_color=(0, 0, 0),
