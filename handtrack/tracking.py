@@ -3,6 +3,9 @@ import cv2
 import sys 
 import yaml
 from tqdm import tqdm
+import os 
+import sys
+import torch
 
 sys.path.append("../")
 
@@ -29,7 +32,7 @@ def point_depth_estimation(image0_pair,
     # TODO: Create the depth point estimation function
 
 
-def load_tracks(stereo_dataloader, model_path, cam_data_path, confidence_threshold=0.2, KP=8, verbose=False):
+def load_tracks(stereo_dataloader, model_path, cam_data_path, confidence_threshold=0.2, KP=8, **yolo_kw):
     """Extracts tracks from the data.
 
     Parameters
@@ -72,10 +75,10 @@ def load_tracks(stereo_dataloader, model_path, cam_data_path, confidence_thresho
             right_frames_rect.append(right_frame_rect)
 
         # YOLO-handpose detection
-        render = ht.pose_track.YOLOHandPose(frames=left_frames_rect, model_path=model_path, confidence_threshold=confidence_threshold)
+        render = ht.pose_track.YOLOHandPose(frames=left_frames_rect, model_path=model_path, confidence_threshold=confidence_threshold, **yolo_kw)
 
         # Processing all the frames
-        render.process(verbose=verbose)
+        render.process()
         xyn = render.xyn
 
         # List to stroe the tracks
@@ -180,7 +183,7 @@ def tracking_estimator(data_path,
                        image_batch_size=4,
                        confidence_threshold=0.2, 
                        KP=8, 
-                       verbose=False
+                       **yolo_kw
                        ):
     """An integrated function that performs two main functions:
 
@@ -236,7 +239,7 @@ def tracking_estimator(data_path,
                              cam_data_path=cam_data_path,
                              confidence_threshold=confidence_threshold,
                              KP=KP,
-                             verbose=verbose
+                             **yolo_kw
                             )
     # Generating point cloud from first frame of stereo pairs
     depth_data = ht.tracking.generate_depth_map(stereo_dataloader=stereo_dataloader,
