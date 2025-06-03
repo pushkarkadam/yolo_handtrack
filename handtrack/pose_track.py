@@ -285,3 +285,91 @@ class YOLOHandPose:
             
         else:
             cv2.imwrite(file_path + '.png', self.rendered_images[0])
+
+class YOLOHandPoseLive(YOLOHandPose):
+    """Live detection class"""
+
+    def __init__(self, cam, fps, model_path, frame_size=(1920, 1080), confidence_threshold=0.2, **yolo_kw):
+        """Initialises the object class
+
+        Parameters
+        ----------
+        cam: int
+            Camera number
+        fps: int
+            Frames per second
+        model_path: str
+            Path to the YOLO trained model
+        frame_size: tuple, default ``(1920, 1080)``
+            Size of the frame
+        confidence_threshold: float, default ``0.2``
+            Confidence threshold in detection.
+        **yolo_kw: dict
+            Keyword arguments for YOLO model function.
+
+        Methods
+        -------
+        stream()
+            Detects pose in live.
+            
+        """
+        super().__init__(frames=[], model_path=model_path, confidence_threshold=confidence_threshold,**yolo_kw)
+        self.cam = cam
+        self.fps = fps
+        self.frame_size = frame_size
+
+    def _reset(self):
+        """Cleans up the object variables"""
+        self.results = []
+        self.keypoints = []
+        self.xyn = []
+        self.xy = []
+        self.rendered_images = []
+        self.boxes = []
+        self.boxes_xywh = []
+        self.boxes_xywhn = []
+        self.boxes_xyxy = []
+        self.boxes_xyxyn = []
+        self.confidence = []
+        self.detections = []
+        
+
+    def stream(self):
+        """Detects pose in live."""
+
+        width = self.frame_size[0]
+        height = self.frame_size[1]
+        
+        cap = cv2.VideoCapture(self.cam)
+        cap.set(cv2.CAP_PROP_FPS, self.fps)
+
+        cap.set(cv2.CAP_PROP_FRAME_WIDTH, width)
+        cap.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
+        
+        while True:
+            # Starts the camera
+            success, img = cap.read()
+
+            # Appends the image from camera to the object frame
+            self.frames.append(img)
+
+            # Process the frame by passing through CNN and extracting keypoints
+            self.process()
+
+            # Renders pose
+            self.render_pose()
+
+            # Extract the rendered image
+            rendered_image = self.rendered_images[-1]
+
+            # Display the image
+            cv2.imshow('Hand pose', rendered_image)
+
+            # reset all the populated list
+            self._reset()
+
+            if cv2.waitKey(1) == ord('q'):
+                break
+
+        cap.release()
+        cv2.destroyAllWindows()  
