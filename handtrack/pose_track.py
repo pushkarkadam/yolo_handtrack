@@ -302,9 +302,16 @@ class YOLOHandPoseLive(YOLOHandPose):
     fps: int
         Frames per second
     model_path: str
-        Path to the YOLO trained model
+        Path to the YOLO trained model.
+    stereo_frame: str
+        Select from three options: ``'left'``, ``'right'``, or ``''``.
+        If empty string is provided as input, then it will use monocular camera.
     frame_size: tuple, default ``(1920, 1080)``
-        Size of the frame
+        Size of the frame.
+        For stereo camera, either of the camera will be used for detection.
+        Provide the resolution of the single camera and not about the two images combined.
+        When using the integrated web cam of a laptop, make sure ``stereo_frame=''``.
+        The empty string will use the monocular camera.
     confidence_threshold: float, default ``0.2``
         Confidence threshold in detection.
     **yolo_kw: dict
@@ -526,10 +533,10 @@ class YOLOHandPoseLive(YOLOHandPose):
             if not self.stereo_frame:
                 img_name = 'monocular'
             elif self.stereo_frame == 'left':
-                img = img[:, :width // 2, :]
+                img = img[:, :width, :]
                 img_name = 'left'
             elif self.stereo_frame == 'right':
-                img = img[:, width // 2:, :]
+                img = img[:, width:, :]
                 img_name = 'right'
 
             self._extract_live_results(img)
