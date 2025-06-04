@@ -287,55 +287,227 @@ class YOLOHandPose:
             cv2.imwrite(file_path + '.png', self.rendered_images[0])
 
 class YOLOHandPoseLive(YOLOHandPose):
-    """Live detection class"""
+    """Live detection class
 
-    def __init__(self, cam, fps, model_path, frame_size=(1920, 1080), confidence_threshold=0.2, **yolo_kw):
-        """Initialises the object class
+    Notes
+    -----
+        Larger network and large image size will create a lag in live detection.
+        Compromising the accuracy by using nano network will lead to fast real time
+        detection.
+    
+    Parameters
+    ----------
+    cam: int
+        Camera number
+    fps: int
+        Frames per second
+    model_path: str
+        Path to the YOLO trained model
+    frame_size: tuple, default ``(1920, 1080)``
+        Size of the frame
+    confidence_threshold: float, default ``0.2``
+        Confidence threshold in detection.
+    **yolo_kw: dict
+        Keyword arguments for YOLO model function.
 
-        Parameters
-        ----------
-        cam: int
-            Camera number
-        fps: int
-            Frames per second
-        model_path: str
-            Path to the YOLO trained model
-        frame_size: tuple, default ``(1920, 1080)``
-            Size of the frame
-        confidence_threshold: float, default ``0.2``
-            Confidence threshold in detection.
-        **yolo_kw: dict
-            Keyword arguments for YOLO model function.
+    Methods
+    -------
+    stream()
+        Detects pose in live.
+        
+    """
 
-        Methods
-        -------
-        stream()
-            Detects pose in live.
-            
-        """
+    def __init__(self, cam, fps, model_path, stereo_frame='left', frame_size=(1920, 1080), confidence_threshold=0.2, **yolo_kw):
         super().__init__(frames=[], model_path=model_path, confidence_threshold=confidence_threshold,**yolo_kw)
         self.cam = cam
         self.fps = fps
         self.frame_size = frame_size
+        self.stereo_frame = stereo_frame
 
     def _reset(self):
-        """Cleans up the object variables"""
+        """Resets all the list to an empy list"""
         self.results = []
-        self.keypoints = []
-        self.xyn = []
         self.xy = []
         self.rendered_images = []
-        self.boxes = []
-        self.boxes_xywh = []
-        self.boxes_xywhn = []
         self.boxes_xyxy = []
-        self.boxes_xyxyn = []
         self.confidence = []
         self.detections = []
-        
 
-    def stream(self):
-        """Detects pose in live."""
+    def _extract_live_results(self, frame):
+        """Same as _extract live function from parent class except
+        that this function does not store information that is not needed 
+        for rendering.
+
+        Notes
+        -----
+            This function is optimised for real time detection only.
+            The optimisation is performed by eliminating the processing of
+            the unused variables during rendering process.
+
+        Parameters
+        ----------
+        frame: numpy.ndarray
+            Numpy image
+        
+        """
+        # Using YOLO model to predict
+        result = self.model(frame, **self.yolo_kw)
+        
+        # Appending results
+        self.results.append(result)
+
+        # Appending boxes
+        boxes = result[0].boxes
+        # self.boxes.append(boxes)
+        
+        # Adding confidence
+        self.confidence.append(boxes.conf.cpu().numpy())
+        
+        # Adding class
+        self.detections.append(boxes.cls.cpu().numpy())
+        
+        # Extracting class names
+        self.class_map = result[0].names
+
+        # Appending box vertices to the list
+        self.boxes_xyxy.append(result[0].boxes.xyxy.cpu().numpy())
+
+        # Keypoints
+        xy_array = result[0].keypoints.xy.cpu().numpy()
+        xy_temp = []
+        for i in xy_array:
+            xy = [tuple(j) for j in i]
+            xy_temp.append(xy)
+        self.xy.append(xy_temp)
+
+    def _render_live_pose(self, 
+                    image_frame,
+                    font_color=(0, 0, 0),
+                    label_font_color=(255, 255, 255),
+                    label_font_scale=0.8,
+                    label_font_thickness=2,
+                    edge_color=(255, 255, 255), 
+                    landmark_color=(255, 0, 0),
+                    font=cv2.FONT_HERSHEY_SIMPLEX,
+                    font_thickness=2,
+                    box_color=(255, 0, 0),
+                    box_thickness=2,
+                    font_scale=0.2,
+                    show_landmarks=True,
+                    show_box=True,
+                    show_label=True
+                   ):
+        """Renders the image.
+
+        Notes
+        -----
+            This function is similar to ``render_pose()`` of the parent class.
+            This function is optimized to ensure real time performance.
+        
+        Renders the bounding box, hand pose, class label and confidence.
+        Also passes un-rendered images to ``self.rendered_images``. This helps
+        in maintaining the continutity of input frames so that the rendered frames
+        are same as input frames.
+        
+        Parameters
+        ----------
+        image_frame: np.ndarray
+            A numpy image
+        font_color: tuple, default ``(0, 0, 0)``
+            Font color for landmark text.
+        label_font_color: tuple, default ``(255, 255, 255)``
+            Font color for label
+        label_font_scale: float, default ``0.8``
+            Font scale for label
+        label_font_thickness: int, default ``2``
+            Font thickness for label.
+        edge_color: tuple, default ``(255, 255, 255)`` 
+            Edge color
+        landmark_color: tuple, default ``(255, 0, 0)``
+            Landmark color
+        font: int, default ``cv2.FONT_HERSHEY_SIMPLEX``
+            Font
+        font_thickness: int, default ``2``
+            Font thickness for landmarks.
+        box_color: tuple, default ``(255, 0, 0)``
+            Color of bounding box.
+        box_thickness: int, default ``2``
+            Thickness of bounding box.
+        font_scale: float, default ``0.2``
+            Font scale for landmarks.
+        show_landmarks: bool, default ``True``
+            Renders landmarks
+        show_box: bool, default ``True``
+            Renders bounding box
+        show_label: bool, default ``True``
+            Shows the label with confidence and detection class.
+            
+        """
+        # Index always remains zero since we have only one image to deal at a time
+        idx = 0
+        
+        # Creating a deep copy
+        frame = copy.deepcopy(image_frame)
+        
+        # For landmark
+        if not self.xy[idx][0]:
+            self.rendered_images.append(frame)
+            return None
+            
+        for xy, xyxy, conf, det in zip(self.xy[idx], self.boxes_xyxy[idx], self.confidence[idx], self.detections[idx]):
+            # Checking confidence treshold
+            if conf > self.confidence_threshold:
+                if show_landmarks:
+                    uv = [(np.int32(i[0]), np.int32(i[1])) for i in xy]
+                    for e in self.EDGES:
+                        frame = cv2.line(frame, uv[e[0]], uv[e[1]], edge_color, 2)
+
+                    for n, landmark in enumerate(uv):
+                        frame = cv2.circle(frame, landmark, 2, landmark_color, -1)
+                        frame = cv2.putText(frame, 
+                                            text=str(n), 
+                                            org=landmark, 
+                                            fontFace=font,
+                                            fontScale=font_scale,
+                                            color=font_color,
+                                            thickness=font_thickness
+                                           )
+                if show_box:
+                    # Unpacking
+                    x0, y0, x1, y1 = xyxy
+
+                    start_point = (int(x0), int(y0))
+                    end_point = (int(x1), int(y1))
+
+                    # Bounding box
+                    frame = cv2.rectangle(frame, start_point, end_point, box_color, box_thickness)
+
+                    if show_label:
+                        text = str(f"{self.class_map[det]}:{conf:.2f}")
+                        text_size, _ = cv2.getTextSize(text, font, label_font_scale, font_thickness)
+                        text_w, text_h = text_size
+                        text_end_point = (start_point[0] + text_w, start_point[1] + text_h)
+                        frame = cv2.rectangle(frame, start_point, text_end_point , box_color, -1)
+                        frame = cv2.putText(frame,
+                                            text=text,
+                                            org=(start_point[0], start_point[1]+int(text_h)),
+                                            fontFace=font,
+                                            fontScale=label_font_scale,
+                                            color=label_font_color,
+                                            thickness=label_font_thickness
+                                           )
+
+        self.rendered_images.append(frame)
+
+    def stream(self, **render_kw):
+        """Detects pose in live.
+        
+        Parameters
+        ----------
+        render_kw: dict
+            Keyword arguments that are the parameters of ``render_live_pose()`` methods.
+            
+        """
 
         width = self.frame_size[0]
         height = self.frame_size[1]
@@ -350,20 +522,26 @@ class YOLOHandPoseLive(YOLOHandPose):
             # Starts the camera
             success, img = cap.read()
 
-            # Appends the image from camera to the object frame
-            self.frames.append(img)
+            # Split the frame into left and right images
+            if not self.stereo_frame:
+                img_name = 'monocular'
+            elif self.stereo_frame == 'left':
+                img = img[:, :width // 2, :]
+                img_name = 'left'
+            elif self.stereo_frame == 'right':
+                img = img[:, width // 2:, :]
+                img_name = 'right'
 
-            # Process the frame by passing through CNN and extracting keypoints
-            self.process()
+            self._extract_live_results(img)
 
             # Renders pose
-            self.render_pose()
+            self._render_live_pose(img, **render_kw)
 
             # Extract the rendered image
             rendered_image = self.rendered_images[-1]
 
             # Display the image
-            cv2.imshow('Hand pose', rendered_image)
+            cv2.imshow(img_name, rendered_image)
 
             # reset all the populated list
             self._reset()
@@ -372,4 +550,4 @@ class YOLOHandPoseLive(YOLOHandPose):
                 break
 
         cap.release()
-        cv2.destroyAllWindows()  
+        cv2.destroyAllWindows()
