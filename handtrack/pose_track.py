@@ -522,7 +522,13 @@ class YOLOHandPoseLive(YOLOHandPose):
         cap = cv2.VideoCapture(self.cam)
         cap.set(cv2.CAP_PROP_FPS, self.fps)
 
-        cap.set(cv2.CAP_PROP_FRAME_WIDTH, width)
+        # Setting up 2x width for stereo camera or else width for monocular camera
+        if self.stereo_frame:
+            stereo_width = width * 2
+        else:
+            stereo_width = width
+
+        cap.set(cv2.CAP_PROP_FRAME_WIDTH, stereo_width)
         cap.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
         
         while True:
