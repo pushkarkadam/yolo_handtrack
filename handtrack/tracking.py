@@ -32,7 +32,7 @@ def point_depth_estimation(image0_pair,
     # TODO: Create the depth point estimation function
 
 
-def load_tracks(stereo_dataloader, model_path, cam_data_path, confidence_threshold=0.2, KP=8, **yolo_kw):
+def load_tracks(stereo_dataloader, model_path, cam_data_path, confidence_threshold=0.2, KP=8, detect_frames='left', **yolo_kw):
     """Extracts tracks from the data.
 
     Parameters
@@ -47,6 +47,8 @@ def load_tracks(stereo_dataloader, model_path, cam_data_path, confidence_thresho
         Threshold to consider while detecting.
     KP: int, default ``8``
         Keypoint index to track. ``8`` indicates the tip of the index finger.
+    detect_frames: str, ``'left'``
+        Select which camera frames the hand tracking must take place.
     verbose: bool, default ``False``
         If ``True``, then prints out the detection results in the console.
 
@@ -74,8 +76,14 @@ def load_tracks(stereo_dataloader, model_path, cam_data_path, confidence_thresho
             left_frames_rect.append(left_frame_rect)
             right_frames_rect.append(right_frame_rect)
 
+        # Selecting the frames to track
+        if detect_frames == 'left':
+            track_camera_frames = left_frames_rect
+        else:
+            track_camera_frames = right_frames_rect 
+        
         # YOLO-handpose detection
-        render = ht.pose_track.YOLOHandPose(frames=left_frames_rect, model_path=model_path, confidence_threshold=confidence_threshold, **yolo_kw)
+        render = ht.pose_track.YOLOHandPose(frames=track_camera_frames, model_path=model_path, confidence_threshold=confidence_threshold, **yolo_kw)
 
         # Processing all the frames
         render.process()
