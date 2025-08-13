@@ -650,7 +650,8 @@ class YOLOHandPoseLiveRecord(YOLOHandPose):
                     font_scale=0.2,
                     show_landmarks=True,
                     show_box=True,
-                    show_label=True
+                    show_label=True,
+                    show_tracks=True
                    ):
         """Renders the image.
 
@@ -703,6 +704,15 @@ class YOLOHandPoseLiveRecord(YOLOHandPose):
         
         # Creating a deep copy
         frame = copy.deepcopy(image_frame)
+
+        # Shows tracks
+        if show_tracks:
+            tracks = copy.copy(self.tracks)
+            if tracks:
+                tracks_uv = [(np.int32(i[0]), np.int32(i[1])) for i in tracks]
+    
+                for n, kpt_uv in enumerate(tracks_uv):
+                    frame = cv2.circle(frame, kpt_uv, 2, landmark_color, -1)
         
         # For landmark
         if not self.xy[idx][0]:
