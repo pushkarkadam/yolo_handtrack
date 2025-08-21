@@ -578,6 +578,7 @@ class YOLOHandPoseLiveRecord(YOLOHandPose):
 
         self.tracks = []
         self.tracks_timestamp = []
+        self.first_frame = []
 
     def _reset(self):
         """Resets all the list to an empy list"""
@@ -705,7 +706,6 @@ class YOLOHandPoseLiveRecord(YOLOHandPose):
         # Creating a deep copy
         frame = copy.deepcopy(image_frame)
 
-        # Shows tracks
         if show_tracks:
             tracks = copy.copy(self.tracks)
             if tracks:
@@ -762,6 +762,7 @@ class YOLOHandPoseLiveRecord(YOLOHandPose):
                                             thickness=label_font_thickness
                                            )
 
+
         self.rendered_images.append(frame)
 
     def _track_kpts(self, keypoint=8):
@@ -773,9 +774,6 @@ class YOLOHandPoseLiveRecord(YOLOHandPose):
             Keypoint to track.
             
         """
-
-        # Takes the last rendered image
-        # image = self.rendered_images[-1]
 
         idx = 0
         
@@ -805,15 +803,8 @@ class YOLOHandPoseLiveRecord(YOLOHandPose):
 
                 csv_writer.writerow(data_row)
 
-    def stream(self, **render_kw):
-        """Detects pose in live.
-        
-        Parameters
-        ----------
-        render_kw: dict
-            Keyword arguments that are the parameters of ``render_live_pose()`` methods.
-            
-        """
+    def _capture_first_frame(self):
+        """Captures first frame for stereo processing"""
 
         width = self.frame_size[0]
         height = self.frame_size[1]
@@ -830,9 +821,54 @@ class YOLOHandPoseLiveRecord(YOLOHandPose):
         cap.set(cv2.CAP_PROP_FRAME_WIDTH, stereo_width)
         cap.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
 
-        
+        time.sleep(1)
+        try:
+            for i in range(5):
+                print(f"Count: {i}")
+                success, img = cap.read()
+    
+            if self.stereo_frame:
+                # first frame
+                img_left = img[:, :width, :]
+                img_right = img[:, width:, :]
+    
+                self.first_frame.append(img_left)
+                self.first_frame.append(img_right)
+            else:
+                self.first_frame.append(img)
+        except Exception as e:
+            print(e)
+            cap.release()
+            cv2.destroyAllWindows()
 
-        kpt_counter = 0
+        cap.release()
+        cv2.destroyAllWindows()
+
+    def stream(self, **render_kw):
+        """Detects pose in live.
+        
+        Parameters
+        ----------
+        render_kw: dict
+            Keyword arguments that are the parameters of ``render_live_pose()`` methods.
+            
+        """
+
+        self._capture_first_frame()
+
+        width, height = self.frame_size
+        
+        cap = cv2.VideoCapture(self.cam)
+        cap.set(cv2.CAP_PROP_FPS, self.fps)
+
+        # Setting up 2x width for stereo camera or else width for monocular camera
+        if self.stereo_frame:
+            stereo_width = width * 2
+        else:
+            stereo_width = width
+
+        cap.set(cv2.CAP_PROP_FRAME_WIDTH, stereo_width)
+        cap.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
         
         while True:
             try:
