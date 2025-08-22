@@ -1,16 +1,8 @@
-# from ultralytics import YOLO
 import sys
 import os
 import numpy as np
-import matplotlib.pyplot as plt
 import cv2
-# from torchvision import transforms
-# from tqdm import tqdm
-import open3d as o3d
-# import torch
-import time 
-import random
-import csv
+import time
 
 
 sys.path.append('../..')
@@ -66,6 +58,9 @@ if __name__ == '__main__':
                 'show_label':True}
 
     live_det.stream(**render_kw)
+
+    # Extracting first frame
+    left_stereo, right_stereo = live_det.first_frame
 
     image_dir = os.path.join(session_save_path, "images")
     os.makedirs(image_dir, exist_ok=True)
