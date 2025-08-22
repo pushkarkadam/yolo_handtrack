@@ -3,7 +3,6 @@ images/
 notebooks/
 data/
 weights/
-stereocam/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

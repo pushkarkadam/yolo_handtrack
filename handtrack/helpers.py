@@ -59,42 +59,22 @@ def frames_torch_to_numpy(images):
 
     return [images[i].permute(1,2,0).numpy() for i in range(images.shape[0])]
 
-def rectify_stereo_images(imageL, imageR, cam_data_path):
-    """Rectifies the images.
-
-    Unlike ``rectify_images`` function from ``stereocam`` package,
-    this function performs the process of extraction of the stereomap
-    and rectifying the images.
-    Since these set of steps are provided in the ``stereocam`` package,
-    it makes sense to have the function in this module to avoid repeating the
-    steps if it is needed in the next function.
-
+def get_yolo_handpose_model(path):
+    """Returns the ``YOLOv8{i}_handpose`` trained model.
+    
     Parameters
     ----------
-    imageL: numpy.ndarray
-        Left RGB image
-    imageR: numpy.ndarray
-        Right RGB image
-    calib_data: str
-        Path to calibration data.
-
-    Returns
-    -------
-    rectL: numpy.ndarray
-        Rectified left image
-    rectR: numpy.ndarray
-        Rectified right image
-    
+    path: str
+        Path to the parent directory of the models.
     """
 
-    calib_data = np.load(cam_data_path, allow_pickle=True)
-    
-    grayL, grayR = [cv2.cvtColor(image, cv2.COLOR_RGB2GRAY) for image in [imageL, imageR]]
-    
-    # Stereo map generation
-    stereoMapL, stereoMapR = sc.depth_estimation.stereo_map(calib_data, image_shape=grayL.shape[::-1])
+    model_types = ['n', 's', 'm', 'l', 'x']
 
-    # Image rectification - hsv
-    rectL, rectR = sc.depth_estimation.rectify_images(imageL, imageR, stereoMapL, stereoMapR)
+    weight_paths = [os.path.join(path, f"yolov8{i}_handpose.pt") for i in model_types]
 
-    return rectL, rectR
+    model_path  = dict()
+
+    for model_type, weight_path in zip(model_types, weight_paths):
+        model_path[model_type] = weight_path
+
+    return model_path
