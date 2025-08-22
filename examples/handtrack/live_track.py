@@ -3,6 +3,7 @@ import os
 import numpy as np
 import cv2
 import time
+import argparse 
 
 
 sys.path.append('../..')
@@ -11,12 +12,19 @@ import stereocam as sc
 import handtrack as ht
 
 if __name__ == '__main__':
-
-    save_path = '../../data/tracking'
-    frame_size = (672, 376)
-    confidence_threshold = 0.4
-    fps = 10
-    stereo_frame = 'left'
+    # Command line arguments 
+    parser = argparse.ArgumentParser(description="Live tracking")
+    parser.add_argument('-sp', '--save_path', default='../../data/tracking', type=str, help='Save path for tracking data storage.')
+    parser.add_argument('-fz', '--frame_size', nargs="+", default=(672, 376), type=int, help='Frame size of stereo image.')
+    parser.add_argument('-c', '--confidence_threshold', default=0.4, type=float, help='Confidence threshold for YOLO.')
+    parser.add_argument('-fps', '--fps', default=10, type=int, help='Frames per second.')
+    parser.add_argument('-sf', '--stereo_frame', default='left', type=str, help="Frame to use while tracking. Options: 'left', 'right'")
+    
+    save_path = str(save_path)
+    frame_size = tuple(frame_size)
+    confidence_threshold = float(confidence_threshold)
+    fps = int(fps)
+    stereo_frame = str(stereo_frame)
 
     timestamp = int(time.time())
 
