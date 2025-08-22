@@ -7,7 +7,7 @@ import argparse
 import time 
 import yaml 
 
-sys.path.append('../')
+sys.path.append('../..')
 
 from stereocam import calibration, depth_estimation
 

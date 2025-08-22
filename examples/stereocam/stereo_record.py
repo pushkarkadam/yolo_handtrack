@@ -4,7 +4,7 @@ import time
 import os
 import sys 
 
-sys.path.append('../')
+sys.path.append('../..')
 from stereocam import *
 
 

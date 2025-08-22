@@ -13,7 +13,7 @@ import random
 import csv
 
 
-sys.path.append('../')
+sys.path.append('../..')
 
 import stereocam as sc
 import handtrack as ht
