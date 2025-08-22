@@ -58,3 +58,23 @@ def frames_torch_to_numpy(images):
     """
 
     return [images[i].permute(1,2,0).numpy() for i in range(images.shape[0])]
+
+def get_yolo_handpose_model(path):
+    """Returns the ``YOLOv8{i}_handpose`` trained model.
+    
+    Parameters
+    ----------
+    path: str
+        Path to the parent directory of the models.
+    """
+
+    model_types = ['n', 's', 'm', 'l', 'x']
+
+    weight_paths = [os.path.join(path, f"yolov8{i}_handpose.pt") for i in model_types]
+
+    model_path  = dict()
+
+    for model_type, weight_path in zip(model_types, weight_paths):
+        model_path[model_type] = weight_path
+
+    return model_path
