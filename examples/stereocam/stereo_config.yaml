@@ -1,0 +1,3 @@
+calib_path: ../images/case2/stereo_calib.npz
+imageL_path: ../images/exp_data_collection/weld_tab/stereo_left/images/0.png
+imageR_path: ../images/exp_data_collection/weld_tab/stereo_right/images/0.png
