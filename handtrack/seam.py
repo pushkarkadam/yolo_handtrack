@@ -32,7 +32,6 @@ def region_box_coords(image, x_vals, y_vals, scaling_factor=100):
     
     Examples
     --------
-    >>> from lfdtrack.fingertrack import *
     >>> import numpy as np
     >>> I = np.identity(5)
     >>> x = list(range(1,3))
@@ -100,7 +99,6 @@ def point_box(image, x_vals, y_vals, scaling_factor=100):
         
     Examples
     --------
-    >>> from lfdtrack.fingertrack import *
     >>> import numpy as np
     >>> I = np.identity(5)
     >>> x = list(range(1,3))
@@ -147,7 +145,6 @@ def region_of_interest(image, boxes):
     
     Examples
     --------
-    >>> from lfdtrack.fingertrack import *
     >>> import numpy as np
     >>> boxes = [np.array([[1,2],[3,4]]), np.array([[1,2],[3,4]])]
     >>> image = np.identity(3)
@@ -192,7 +189,6 @@ def isolate_point_roi(I, boxes):
     
     Examples
     --------
-    >>> from lfdtrack import *
     >>> I = np.zeros([5,5])
     >>> boxes = [np.array([[[1,1],[1,3],[3,3],[3,1]]])]
     >>> roi_imgs = isolate_point_roi(I, boxes)
@@ -248,7 +244,6 @@ def roi_edges(roi_crops, blur_n=1, blur_kernel=(5,5), lower_threshold=50, upper_
     
     Examples
     --------
-    >>> from lfdtrack import *
     >>> I_roi0 = np.random.randint(255,size=(100,100), dtype='uint8')
     >>> I_roi1 = np.random.randint(255,size=(100,100), dtype='uint8')
     >>> roi_crops = [(I_roi0, (1,1)), (I_roi1, (2,2))]
@@ -295,7 +290,7 @@ def patch_roi(I, roi_images):
         
     Examples
     --------
-    >>> from lfdtrack import *
+    >>> import numpy as np
     >>> I = np.zeros([5,5])
     >>> I_roi0 = np.array([[1,2],[3,4]])
     >>> I_roi1 = np.array([[1,2],[3,4]])
