@@ -783,7 +783,7 @@ class YOLOHandPoseLiveRecord(YOLOHandPose):
             xy  = self.xy[idx][idx][keypoint]
     
             self.tracks.append(xy)
-            self.tracks_timestamp.append(int(time.time()))
+            self.tracks_timestamp.append(time.time())
 
     def _write_tracks(self):
         """Writes tracks to csv file."""
@@ -892,8 +892,6 @@ class YOLOHandPoseLiveRecord(YOLOHandPose):
     
                 # Renders pose
                 self._render_live_pose(img, **render_kw)
-
-                timestamp = int(time.time())
 
                 # Extract the rendered image
                 rendered_image = self.rendered_images[-1]
