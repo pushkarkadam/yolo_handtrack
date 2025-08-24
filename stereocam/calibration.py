@@ -80,7 +80,7 @@ def read_chess_board(file_path, pattern_dim=(7, 3), image_format="png", display_
 # Calibration
 # ret, mtx, dist, 
 
-def calibration(file_path, 
+def camera_calibration(file_path, 
                 pattern_dim=(7, 3), 
                 image_format="png", 
                 display_rendered=False, 
@@ -602,3 +602,36 @@ def stereo_live_calibration(cam,
         return retval, calib_save_path
     except Exception as e:
         print(e)
+
+def get_focal_length(Q):
+    """Returns focal length.
+    
+    Parameters
+    ----------
+    Q: numpy.ndarray
+        Projection matrix.
+
+    Returns
+    -------
+    float:
+        Focal length of stereo camera.
+    """
+
+    return Q[2, -1]
+
+def get_baseline(Q):
+    """Returns stereo camera baseline.
+    
+    Parameters
+    ----------
+    Q: numpy.ndarray
+        Projection matrix.
+
+    Returns
+    -------
+    float:
+        Stereo baseline
+    """
+    
+    return 1/Q[-1, 2]
+
