@@ -5,6 +5,7 @@ from torch.utils.data import DataLoader, Dataset
 import numpy as np 
 import torch
 import sys
+import pandas as pd
 
 sys.path.append("../")
 
@@ -78,3 +79,30 @@ def get_yolo_handpose_model(path):
         model_path[model_type] = weight_path
 
     return model_path
+
+def load_tracks_data(data_path, color_conversion=cv2.COLOR_BGR2RGB):
+    """Loads tracking data.
+    
+    Parameters
+    ---------- 
+    data_path: str
+        Path where the data is stored.
+    color_conversion: int, default ``cv2.COLOR_BGR2RGB``
+        Conversion code to convert the type of image.
+    
+    Returns
+    -------
+    tracks_df: pandas.DataFrame
+        A pandas dataframe with tracking information.
+    imgL: numpy.ndarray
+        Left image of the stereo.
+    imgR: numpy.ndarray
+        Right image of the stereo.
+
+    """
+
+    tracks_df = pd.read_csv(os.path.join(data_path, 'tracks.csv'))
+
+    imgL, imgR = [cv2.imread(os.path.join(data_path, 'images', f'{img_type}.png')) for img_type in ["left", "right"]]
+
+    return tracks_df, imgL, imgR
