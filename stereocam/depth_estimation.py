@@ -226,7 +226,7 @@ def point_cloud(image,
                 depth_limits,
                 camera_projection,
                 depth_map,
-                left_cut,
+                left_cut=None,
                 image_type='bgr',
                 save_path=None,
                 pcd_name="point_cloud.ply",
@@ -248,6 +248,8 @@ def point_cloud(image,
         coordinates with respect to the left camera frame.
     depth_map: numpy.ndarray
         A matrix that shows depth value of each pixel in left camera frame.
+    left_cut: int, default ``None``
+        Cut the non-matched part of the stereo image.
     image_type: str, default ``bgr``
         The channels of the image specified.
     save_path, str, default ``None``
@@ -270,7 +272,8 @@ def point_cloud(image,
     if image_type == 'bgr':
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
-    image = image[:, left_cut:, :]
+    if left_cut:
+        image = image[:, left_cut:, :]
 
     # Normalize to [0, 1]
     colors = image.reshape(-1, 3) / 255.0
@@ -306,7 +309,7 @@ def point_cloud(image,
 
     return pcd
 
-def pick_points(pcd):
+def pick_points(pcd, cloud_frame_size=0.05):
     r"""Provides the coordinate information by clicking on the points.
     The output will be printed in the terminal window when the points are clicked.
     The return list will three points that will provide the index of the point
@@ -333,7 +336,9 @@ def pick_points(pcd):
     vis = o3d.visualization.VisualizerWithEditing()
     vis.create_window()
     vis.add_geometry(pcd)
-    
+
+    axis = o3d.geometry.TriangleMesh.create_coordinate_frame(size=cloud_frame_size, origin=[0, 0, 0])
+    vis.add_geometry(axis)
     vis.run()  # user picks points
     vis.destroy_window()
     print("")
@@ -457,7 +462,7 @@ def image_points_to_camera(x_rect, y_rect, left_cut, disparity, Q, max_depth=1):
 
     return points3d
 
-def visualise_points(pcd, points3d, color=[1, 0, 0]):
+def visualise_points(pcd, points3d, color=[1, 0, 0], cloud_frame_size=0.05):
     """Visualises the given set of points in point clouds.
     
     Parameters
@@ -471,4 +476,5 @@ def visualise_points(pcd, points3d, color=[1, 0, 0]):
     points_to_add = o3d.geometry.PointCloud()
     points_to_add.points = o3d.utility.Vector3dVector(points3d)
     points_to_add.paint_uniform_color(color)
-    o3d.visualization.draw_geometries([points_to_add, pcd])
+    axis = o3d.geometry.TriangleMesh.create_coordinate_frame(size=cloud_frame_size, origin=[0, 0, 0])
+    o3d.visualization.draw_geometries([points_to_add, pcd, axis])
