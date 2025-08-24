@@ -4,6 +4,7 @@ import numpy as np
 import cv2
 import time
 import argparse 
+import datetime
 
 
 sys.path.append('../..')
@@ -27,6 +28,8 @@ if __name__ == '__main__':
     stereo_frame = str(stereo_frame)
 
     timestamp = int(time.time())
+    ct = datetime.datetime.now()
+    date = ct.strftime("%Y-%m-%d-%H-%M")
 
     cam_index = sc.capture_images.detect_stereo_camera("zed")
 
@@ -36,7 +39,7 @@ if __name__ == '__main__':
 
     model_path = ht.helpers.get_yolo_handpose_model('../../weights')
 
-    session_save_path = os.path.join(save_path, str(timestamp))
+    session_save_path = os.path.join(save_path, str(date))
 
     os.makedirs(session_save_path, exist_ok=True)
     print(f"Created directory: {session_save_path}")
