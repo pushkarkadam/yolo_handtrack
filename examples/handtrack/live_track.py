@@ -15,17 +15,19 @@ import handtrack as ht
 if __name__ == '__main__':
     # Command line arguments 
     parser = argparse.ArgumentParser(description="Live tracking")
-    parser.add_argument('-sp', '--save_path', default='../../data/tracking', type=str, help='Save path for tracking data storage.')
+    parser.add_argument('-sp', '--save_path', default='../../data/tracks', type=str, help='Save path for tracking data storage.')
     parser.add_argument('-fz', '--frame_size', nargs="+", default=(672, 376), type=int, help='Frame size of stereo image.')
     parser.add_argument('-c', '--confidence_threshold', default=0.4, type=float, help='Confidence threshold for YOLO.')
     parser.add_argument('-fps', '--fps', default=10, type=int, help='Frames per second.')
     parser.add_argument('-sf', '--stereo_frame', default='left', type=str, help="Frame to use while tracking. Options: 'left', 'right'")
     
-    save_path = str(save_path)
-    frame_size = tuple(frame_size)
-    confidence_threshold = float(confidence_threshold)
-    fps = int(fps)
-    stereo_frame = str(stereo_frame)
+    args = parser.parse_args()
+
+    save_path = str(args.save_path)
+    frame_size = tuple(args.frame_size)
+    confidence_threshold = float(args.confidence_threshold)
+    fps = int(args.fps)
+    stereo_frame = str(args.stereo_frame)
 
     timestamp = int(time.time())
     ct = datetime.datetime.now()
