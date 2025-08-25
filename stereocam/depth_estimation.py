@@ -212,7 +212,7 @@ def depth_maps(imageL,
     # Extracting last channel of the camera projection which is the z axis for depth
     depth_map = camera_projection[:,:,-1]
 
-    # Elimating the blank area on the left side
+    # Elimating the blank area on the left side (OpenCV requires disparity in the multiples of 16)
     left_cut = minDisparity + 16 * dispFactor
 
     if remove_stereo_blank:
@@ -477,4 +477,4 @@ def visualise_points(pcd, points3d, color=[1, 0, 0], cloud_frame_size=0.05):
     points_to_add.points = o3d.utility.Vector3dVector(points3d)
     points_to_add.paint_uniform_color(color)
     axis = o3d.geometry.TriangleMesh.create_coordinate_frame(size=cloud_frame_size, origin=[0, 0, 0])
-    o3d.visualization.draw_geometries([points_to_add, pcd, axis])
+    o3d.visualization.draw_geometries([pcd, points_to_add, axis])
