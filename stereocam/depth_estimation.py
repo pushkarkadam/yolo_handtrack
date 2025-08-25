@@ -420,9 +420,8 @@ def rectify_points(x, y, K, D, R, P):
     
     return x_rect, y_rect
 
-def image_points_to_camera(x_rect, y_rect, left_cut, disparity, Q, max_depth=1):
-    """Projects the image plane points that are rectified to the points in
-    camera frame.
+def image_points_to_camera(x_rect, y_rect, camera_projection, max_depth=1.0, min_depth=0):
+    """Projects the image plane tracking points to point clouds.
     
     Parameters
     ----------
@@ -430,35 +429,26 @@ def image_points_to_camera(x_rect, y_rect, left_cut, disparity, Q, max_depth=1):
         An array of rectified x coordinates.
     y_rect: numpy.ndarray
         An array of rectified y coordinates.
-    left_cut: int
-        Value where the disparity image is cut with the blank area.
-    disparity: numpy.ndarray
-        Disparity map.
-    Q: numpy.ndarray
-        Projection matrix.
-    max_depth: int, default ``1``
-        Maximum depth for visualisation.
-    
+    camera_projection: numpy.ndarray
+        Camera projection matrix.
+    max_depth: float
+        Maximum depth to filter out.
+    min_depth: float
+        Minimum depth to filter out.
+
     Returns
     -------
     points3d: numpy.ndarray
         A point3d array where the image coordinates are projected into camera coordinates.
+        
     """
-
-    image_points = [(xi - left_cut, yi) for xi, yi, in zip(x_rect, y_rect)]
+    # Using row and column as camera projection tensor requires the index values of the tensor to extract 3d object points
+    image_points = [(row, col) for row, col in zip(y_rect, x_rect)]
     
-    disp_points = [disparity[i] for i in image_points]
-
-    object_points = [np.array([c[0] + left_cut, c[1], d, 1]) for c, d in zip(image_points, disp_points)]
-
-    object_3d = [np.matmul(Q, p) for p in object_points]
-
-    object_3d = [op/op[-1] for op in object_3d]
+    object_3d = [camera_projection[i] for i in image_points]
 
     # filtering points to exclude those beyond estimated depths
-    filtered_points3d = [i for i in object_3d if i[-2] < max_depth]
-
-    points3d = np.array([o[:-1].tolist() for o in filtered_points3d])
+    points3d = np.array([i.tolist() for i in object_3d if i[-1] < max_depth and i[-1] > min_depth])
 
     return points3d
 
