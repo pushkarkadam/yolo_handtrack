@@ -3,6 +3,8 @@ import cv2
 import glob
 import os
 from tqdm import tqdm
+import datetime
+import copy
 
 
 def read_chess_board(file_path, pattern_dim=(7, 3), image_format="png", display_rendered=False):

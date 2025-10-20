@@ -609,7 +609,7 @@ class YOLOHandPoseLiveRecord(YOLOHandPose):
         
         """
         # Using YOLO model to predict
-        result = self.model(frame, **self.yolo_kw)
+        result = self.model.predict(frame, conf=self.confidence_threshold)
         
         # Appending results
         self.results.append(result)
@@ -630,7 +630,6 @@ class YOLOHandPoseLiveRecord(YOLOHandPose):
         # Appending box vertices to the list
         self.boxes_xyxy.append(result[0].boxes.xyxy.cpu().numpy())
 
-        # Keypoints
         xy_array = result[0].keypoints.xy.cpu().numpy()
         xy_temp = []
         for i in xy_array:

@@ -22,7 +22,7 @@ if __name__ == '__main__':
     parser.add_argument('-c', '--confidence_threshold', default=0.4, type=float, help='Confidence threshold for YOLO.')
     parser.add_argument('-fps', '--fps', default=10, type=int, help='Frames per second.')
     parser.add_argument('-sf', '--stereo_frame', default='left', type=str, help="Frame to use while tracking. Options: 'left', 'right'")
-    parser.add_argument('-cam', '--cam_param_path', default='../../data/calib/2025-08-15-19-07', type=str, help='Camera parameters')
+    parser.add_argument('-cam', '--cam_params_path', default='../../data/calib/2025-08-15-19-07', type=str, help='Camera parameters')
 
 
     args = parser.parse_args()
@@ -30,9 +30,10 @@ if __name__ == '__main__':
     save_path = str(args.save_path)
     frame_size = tuple(args.frame_size)
     confidence_threshold = float(args.confidence_threshold)
+    # print(confidence_threshold, type(confidence_threshold))
     fps = int(args.fps)
     stereo_frame = str(args.stereo_frame)
-    cam_params_path = os.path.join(args.cam_param_path, 'stereo_calib.npz')
+    cam_params_path = os.path.join(args.cam_params_path, 'stereo_calib.npz')
 
     cam_data = sc.helpers.load_calibration_data(cam_params_path)
 
@@ -113,7 +114,7 @@ if __name__ == '__main__':
     disparity, camera_projection, depth_map, left_cut = sc.depth_estimation.depth_maps(rectL, 
                                                                                         rectR, 
                                                                                         cam_data['Q'],
-                                                                                        dispFactor=9, 
+                                                                                        dispFactor=12, 
                                                                                         blockSize=5,
                                                                                         minDisparity=0,
                                                                                         disp12MaxDiff=-1,
@@ -122,7 +123,7 @@ if __name__ == '__main__':
                                                                                         speckleWindowSize=100, # range 50-200
                                                                                         speckleRange=1, # range 1 or 2
                                                                                         mode = 0,
-                                                                                        image_type='rgb',
+                                                                                        image_type='bgr',
                                                                                         remove_stereo_blank=False
                                                                                         )
 

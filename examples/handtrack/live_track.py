@@ -17,10 +17,11 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Live tracking")
     parser.add_argument('-sp', '--save_path', default='../../data/tracks', type=str, help='Save path for tracking data storage.')
     parser.add_argument('-fz', '--frame_size', nargs="+", default=(672, 376), type=int, help='Frame size of stereo image.')
-    parser.add_argument('-c', '--confidence_threshold', default=0.4, type=float, help='Confidence threshold for YOLO.')
+    parser.add_argument('-c', '--confidence_threshold', default=0.7, type=float, help='Confidence threshold for YOLO.')
     parser.add_argument('-fps', '--fps', default=10, type=int, help='Frames per second.')
     parser.add_argument('-sf', '--stereo_frame', default='left', type=str, help="Frame to use while tracking. Options: 'left', 'right'")
-    
+    parser.add_argument('-cam', '--cam_name', default='zed', type=str , help='Camera name.')
+
     args = parser.parse_args()
 
     save_path = str(args.save_path)
@@ -28,12 +29,13 @@ if __name__ == '__main__':
     confidence_threshold = float(args.confidence_threshold)
     fps = int(args.fps)
     stereo_frame = str(args.stereo_frame)
+    cam_name = str(args.cam_name)
 
     timestamp = int(time.time())
     ct = datetime.datetime.now()
     date = ct.strftime("%Y-%m-%d-%H-%M")
 
-    cam_index = sc.capture_images.detect_stereo_camera("zed")
+    cam_index = sc.capture_images.detect_stereo_camera(cam_name)
 
     if not cam_index:
         print("Stereo camera not detected")
