@@ -353,3 +353,35 @@ def detect_stereo_camera(camera_name="zed"):
                 if cam_match:
                     return int(cam_match.group(1))
     return None
+
+def capture_stereo_image(cam_num, image_resolution=(672, 376)):
+    """Captures stereo image from camera.
+
+    Parameters
+    ----------
+    cam_num: int
+        The index of the camera detected.
+    image_resolution: tuple, default ``(672, 376)
+
+    Returns
+    -------
+    tuple:
+        A tuple of stereo left and right image
+    
+    """
+
+    cap = cv2.VideoCapture(cam_num)
+
+    width, height = image_resolution
+
+    # Creating resolution
+    # Using multiple of 2 because stereo camera reads both left and right images at the same time.
+    cap.set(cv2.CAP_PROP_FRAME_WIDTH, width * 2)
+    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
+
+    for i in range(5):  
+        ret, frame = cap.read()
+
+    left_image, right_image = np.hsplit(frame, 2)
+
+    return left_image, right_image
