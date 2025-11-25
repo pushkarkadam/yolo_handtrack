@@ -104,6 +104,11 @@ def T_world_to_camera(imgpoints, Q, disparity, chessboard_size=(8,6)):
         A disparity map generated from stereo matching.
     chessboard_size: tuple, default ``(8,6)``
         The inner grid points of the chessboard.
+    
+    Returns
+    -------
+    cTw: np.ndarray
+        A homogeneous transformation matrix from world to camera.
 
     """
 
@@ -138,3 +143,38 @@ def T_world_to_camera(imgpoints, Q, disparity, chessboard_size=(8,6)):
     cTw = np.vstack([cTw, np.array([0,0,0,1])])
 
     return cTw
+
+def T_world_to_robot(p1, p2, p3):
+    """Constructs world to robot matrix from the points.
+
+    Paramters
+    ---------
+    p1: np.array
+        A numpy array for the origin of the world coordinate.
+    p2: np.array
+        A numpy array of the point along the x-axis of the world coordinate.
+    p3: np.array
+        A numpy array of the point along the y-axis of the world coordinate.
+
+    Returns
+    -------
+    rTw: np.ndarray
+        A homogeneous transformation matrix from world to robot.
+    
+    """
+
+    xr = p2 - p1
+    yr = p3 - p1
+    
+    xr_hat = xr / np.linalg.norm(xr)
+    yr_hat = yr / np.linalg.norm(yr)
+    
+    zr_hat = np.cross(xr_hat, yr_hat)
+
+    # Recomputing y_r to ensure orthogonal with x and y axes.
+    y_r = np.cross(zr_hat, xr_hat)
+
+    rTw = np.vstack([xr_hat, yr_hat, zr_hat, p1]).T
+    rTw = np.vstack([rTw, np.array([0,0,0,1])])
+    
+    return rTw
