@@ -253,3 +253,28 @@ def robot_projection_evaluation(point_num, imgpoints, Q, disparity, rTc):
     robot_coords = np.matmul(rTc, cX)
 
     return robot_coords[:-1]
+
+def robot_points_from_camera(imgpoints, Q, disparity, rTc, checkpoints=[0, 7, 47, 40, 9, 14, 38, 33, 18, 21, 29, 26]):
+    """Provides a list of all the points in evaluation metric.
+
+    Parameters
+    ----------
+    imagepoints: np.ndarray
+        Image points from the chessboard corner detection points.
+    Q: np.ndarray
+        A reprojection matrix of size ``4 x 4``.
+    disparity: np.ndarray
+        A disparity map generated from stereo matching.
+    rTc: np.ndarray
+        Camera to robot transformation matrix.
+    checkpoints: list
+        A list of checkpoints from the image points
+    
+    """
+    
+    if not checkpoints:
+        checkpoints = list(range(imgpoints.shape[0]))
+
+    robot_coords_list = [robot_projection_evaluation(i ,imgpoints, Q, disparity, rTc) for i in checkpoints]
+    
+    return robot_coords_list
