@@ -198,11 +198,58 @@ def T_camera_to_robot(cTw, rTw):
 
     return rTc
 
-def save_transformation(transformations, name='Transformations', save_path='.'):
-    """Saves the transformation matrix"""
+def save_transformation(transformations, file_name='Transformations', save_path='.'):
+    """Saves the transformation matrix.
+    
+    Parameters
+    ----------
+    transformations: dict
+        A dictionary of transformation matrices that needs to be saved.
+    file_name: 
+
+    """
 
     timestamp = int(time.time())
 
     transformations['timestamp'] = timestamp
 
-    np.savez(os.path.join(save_path, f'{name}.npz'), **transformations)
+    if not file_name:
+        file_name = f'Transformations_{timestamp}'
+
+    np.savez(os.path.join(save_path, f'{file_name}.npz'), **transformations)
+
+def robot_projection_evaluation(point_num, imgpoints, Q, disparity, rTc):
+    """Runs a test on the evaluation point from the chessboard calibration points detected.
+    
+    Parameters
+    ----------
+    point_num: int
+        The number of point from a range of ``0 - (m*n - 1)`` of the chessboard point.
+    imagepoints: np.ndarray
+        Image points from the chessboard corner detection points.
+    Q: np.ndarray
+        A reprojection matrix of size ``4 x 4``.
+    disparity: np.ndarray
+        A disparity map generated from stereo matching.
+    rTc: np.ndarray
+        Camera to robot transformation matrix.
+
+    Returns
+    -------
+    robot_coords: list
+        A list of np.ndarray of ``(x, y, z)`` robot coordinates.
+
+    """
+
+    image_point = imgpoints[point_num][0]
+
+    disparity_value = disparity[image_point[1].astype(int), image_point[0].astype(int)]
+
+    projection_points = np.append(image_point, [disparity_value, 1])
+
+    cX_ = np.matmul(Q, projection_points)
+    cX = (cX_ / cX_[-1])
+
+    robot_coords = np.matmul(rTc, cX)
+
+    return robot_coords[:-1]
