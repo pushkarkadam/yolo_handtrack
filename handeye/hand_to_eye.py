@@ -108,7 +108,7 @@ def T_world_to_camera(imgpoints, Q, disparity, chessboard_size=(8,6)):
     Returns
     -------
     cTw: np.ndarray
-        A homogeneous transformation matrix from world to camera.
+        A transformation matrix from world to camera.
 
     """
 
@@ -159,7 +159,7 @@ def T_world_to_robot(p1, p2, p3):
     Returns
     -------
     rTw: np.ndarray
-        A homogeneous transformation matrix from world to robot.
+        A transformation matrix from world to robot.
     
     """
 
@@ -178,3 +178,22 @@ def T_world_to_robot(p1, p2, p3):
     rTw = np.vstack([rTw, np.array([0,0,0,1])])
     
     return rTw
+
+def T_camera_to_robot(cTw, rTw):
+    """Constructs camera to robot transformation matrix.
+    
+    cTw: np.ndarray
+        World to camera transformation matrix.
+    rTw: np.ndarray
+        World to robot transformation matrix.
+
+    Returns
+    -------
+    rTc: np.ndarray
+        Camera to robot transformation matrix.
+
+    """
+
+    rTc = np.matmul(rTw, np.linalg.inv(cTw))
+
+    return rTc
