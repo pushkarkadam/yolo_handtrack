@@ -90,3 +90,51 @@ def get_image_points(rect_img,
         cv2.imwrite(os.path.join(save_path, f"pattern_detection_{timestamp}.png"), rect_img)
 
     return imgpoints[0], rect_img
+
+def T_world_to_camera(imgpoints, Q, disparity, chessboard_size=(8,6)):
+    """Creates transformation matrix from image points.
+    
+    Parameters
+    ----------
+    imgpoints: np.ndarray
+        A numpy tensor of size ``(m*n, 1, 2)``, where ``(m,n)`` are ``chessboard_size``.
+    Q: np.ndarray
+        A reprojection matrix of size ``4 x 4``.
+    disparity: np.ndarray
+        A disparity map generated from stereo matching.
+    chessboard_size: tuple, default ``(8,6)``
+        The inner grid points of the chessboard.
+
+    """
+
+    m, n = chessboard_size
+
+    # World coordinates axes points
+    p1 = 0
+    p2 = m * (n - 1)
+    p3 = m - 1
+
+    points = [imgpoints[i][0] for i in [p1, p2, p3]]
+
+    disp_points = [disparity[p[1].astype(int), p[0].astype(int)] for p in points]
+
+    image_projection_values = [np.append(p, [d, 1]) for p, d in zip(points, disp_points)]
+
+    X_ = np.matmul(Q, np.array(image_projection_values).T)
+    X = (X_/X_[-1])[:-1,:]
+
+    x = X[:,1] - X[:,0]
+    y = X[:,2] - X[:,0]
+    
+    x_hat = x / np.linalg.norm(x)
+    y_hat = y / np.linalg.norm(y)
+
+    z_hat = np.cross(x_hat, y_hat)
+
+    # Computing again for orthogonality of y with x and z
+    y_hat = np.cross(z_hat, x_hat)
+
+    cTw = np.vstack([x_hat, y_hat, z_hat, X[:,0]]).T
+    cTw = np.vstack([cTw, np.array([0,0,0,1])])
+
+    return cTw
