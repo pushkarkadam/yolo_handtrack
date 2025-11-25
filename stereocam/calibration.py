@@ -224,7 +224,7 @@ def stereo_calibration(file_path,
     ----------
     file_path: str
         Path of the file.
-    chessboard_size: str
+    chessboard_size: tuple
         Size of the grid of the chessboard.
         For a chess board of ``9 x 8`` pattern, use the input as ``(8, 7)``.
     square_size: float, default ``0.03``.
