@@ -4,6 +4,7 @@ import datetime
 import os
 import pyudev
 import re
+import numpy as np
 
 
 def capture_stereo(output_path="images", camera_number=None, width=4416, height=1242):
