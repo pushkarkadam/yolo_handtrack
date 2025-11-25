@@ -254,7 +254,7 @@ def robot_projection_evaluation(point_num, imgpoints, Q, disparity, rTc):
 
     return robot_coords[:-1]
 
-def robot_points_from_camera(imgpoints, Q, disparity, rTc, checkpoints=[0, 7, 47, 40, 9, 14, 38, 33, 18, 21, 29, 26]):
+def robot_points_from_camera(imgpoints, Q, disparity, rTc, checkpoints=[0, 7, 47, 40, 9, 14, 38, 33, 18, 21, 29, 26], save_path=''):
     """Provides a list of all the points in evaluation metric.
 
     Parameters
@@ -268,7 +268,15 @@ def robot_points_from_camera(imgpoints, Q, disparity, rTc, checkpoints=[0, 7, 47
     rTc: np.ndarray
         Camera to robot transformation matrix.
     checkpoints: list
-        A list of checkpoints from the image points
+        A list of checkpoints from the image points.
+        Keep the list empty ``[]`` if the robot coordinates of all ``imgpoints`` are needed.
+    save_path: str
+        A path to save ending with the ``.csv`` extension for filename. Example: ``~/path/to/filename.csv``.
+
+    Returns
+    -------
+    robot_coords_list: int
+        A list of robot coordinates based on the list of checkpoints provided.
     
     """
     
@@ -276,5 +284,9 @@ def robot_points_from_camera(imgpoints, Q, disparity, rTc, checkpoints=[0, 7, 47
         checkpoints = list(range(imgpoints.shape[0]))
 
     robot_coords_list = [robot_projection_evaluation(i ,imgpoints, Q, disparity, rTc) for i in checkpoints]
+
+    if save_path:
+        df = pd.DataFrame(robot_coords_list, columns=['x','y','z'], index=list(range(1, len(checkpoints)+1)))
+        df.to_csv(save_path, index=True)
     
     return robot_coords_list
