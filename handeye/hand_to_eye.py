@@ -236,11 +236,12 @@ def robot_projection_evaluation(point_num, imgpoints, Q, disparity, rTc):
 
     Returns
     -------
-    robot_coords: list
-        A list of np.ndarray of ``(x, y, z)`` robot coordinates.
+    camera_coords:np.array
+        ``(x,y,z)`` camera coordinates.
+    robot_coords: np.array
+        ``(x, y, z)`` robot coordinates.
 
     """
-
     image_point = imgpoints[point_num][0]
 
     disparity_value = disparity[image_point[1].astype(int), image_point[0].astype(int)]
@@ -248,11 +249,11 @@ def robot_projection_evaluation(point_num, imgpoints, Q, disparity, rTc):
     projection_points = np.append(image_point, [disparity_value, 1])
 
     cX_ = np.matmul(Q, projection_points)
-    cX = (cX_ / cX_[-1])
+    camera_coords = (cX_ / cX_[-1])
 
     robot_coords = np.matmul(rTc, cX)
 
-    return robot_coords[:-1]
+    return camera_coords, robot_coords[:-1]
 
 def robot_points_from_camera(imgpoints, Q, disparity, rTc, checkpoints=[0, 7, 47, 40, 9, 14, 38, 33, 18, 21, 29, 26], save_path=''):
     """Provides a list of all the points in evaluation metric.
@@ -271,22 +272,23 @@ def robot_points_from_camera(imgpoints, Q, disparity, rTc, checkpoints=[0, 7, 47
         A list of checkpoints from the image points.
         Keep the list empty ``[]`` if the robot coordinates of all ``imgpoints`` are needed.
     save_path: str
-        A path to save ending with the ``.csv`` extension for filename. Example: ``~/path/to/filename.csv``.
+        A path to save robot_coords.
 
     Returns
     -------
-    robot_coords_list: int
+    robot_coords: list
         A list of robot coordinates based on the list of checkpoints provided.
     
     """
-    
     if not checkpoints:
         checkpoints = list(range(imgpoints.shape[0]))
 
-    robot_coords_list = [robot_projection_evaluation(i ,imgpoints, Q, disparity, rTc) for i in checkpoints]
+    coords = [robot_projection_evaluation(i ,imgpoints, Q, disparity, rTc) for i in checkpoints]
+
+    _, robot_coords = zip(*coords)
 
     if save_path:
-        df = pd.DataFrame(robot_coords_list, columns=['x','y','z'], index=list(range(1, len(checkpoints)+1)))
-        df.to_csv(save_path, index=True)
+        df_robot = pd.DataFrame(list(robot_coords), columns=['x','y','z'], index=list(range(1, len(checkpoints)+1)))
+        df_robot.to_csv(os.path.join(f'{save_path}', 'robot_coords.csv'), index=True)
     
-    return robot_coords_list
+    return list(robot_coords)
