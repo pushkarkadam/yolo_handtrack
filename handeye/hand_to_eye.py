@@ -197,3 +197,12 @@ def T_camera_to_robot(cTw, rTw):
     rTc = np.matmul(rTw, np.linalg.inv(cTw))
 
     return rTc
+
+def save_transformation(transformations, name='Transformations', save_path='.'):
+    """Saves the transformation matrix"""
+
+    timestamp = int(time.time())
+
+    transformations['timestamp'] = timestamp
+
+    np.savez(os.path.join(save_path, f'{name}.npz'), **transformations)
