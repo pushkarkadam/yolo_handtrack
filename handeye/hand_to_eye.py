@@ -276,8 +276,8 @@ def robot_points_from_camera(imgpoints, Q, disparity, rTc, checkpoints=[0, 7, 47
 
     Returns
     -------
-    robot_coords: list
-        A list of robot coordinates based on the list of checkpoints provided.
+    df_robot: pandas.DataFrame
+        A dataframe object of robot positions for the given image points.
     
     """
     if not checkpoints:
@@ -287,13 +287,14 @@ def robot_points_from_camera(imgpoints, Q, disparity, rTc, checkpoints=[0, 7, 47
 
     _, robot_coords = zip(*coords)
 
+    df_robot = pd.DataFrame(list(robot_coords), columns=['x','y','z'], index=list(range(1, len(checkpoints)+1)))
+
     if save_path:
-        df_robot = pd.DataFrame(list(robot_coords), columns=['x','y','z'], index=list(range(1, len(checkpoints)+1)))
         df_robot.to_csv(os.path.join(f'{save_path}', 'robot_coords.csv'), index=True)
     
-    return list(robot_coords)
+    return df_robot
 
-def save_image_camera_robot_coords(imgpoints, Q, disparity, rTc, checkpoints=[0, 7, 47, 40, 9, 14, 38, 33, 18, 21, 29, 26], save_path=''):
+def image_camera_robot_coords(imgpoints, Q, disparity, rTc, checkpoints=[0, 7, 47, 40, 9, 14, 38, 33, 18, 21, 29, 26], save_path=''):
     """Saves the image points, disparity, camera coordinates, and robot coordinates.
     
     Parameters
@@ -313,6 +314,7 @@ def save_image_camera_robot_coords(imgpoints, Q, disparity, rTc, checkpoints=[0,
         A path to save robot_coords.
     
     """
+    camera_values = []
 
     for point_num in checkpoints:
         image_point = imgpoints[point_num][0]
@@ -321,11 +323,9 @@ def save_image_camera_robot_coords(imgpoints, Q, disparity, rTc, checkpoints=[0,
         
         d = disparity[v, u]
         
-        coords = robot_projection_evaluation(point_num ,imgpoints, Q, disparity, rTc)
+        camera_coords, robot_coords = robot_projection_evaluation(point_num ,imgpoints, Q, disparity, rTc)
 
-        camera_coords, robot_coords = zip(*coords)
-
-        point_array = np.hstack([np.array([u,v,d]), camera_coords*1e3, robot_coords[:-1]*1e3])
+        point_array = np.hstack([np.array([u,v,d]), camera_coords*1e3, robot_coords*1e3])
 
         camera_values.append(point_array)
 
@@ -334,4 +334,7 @@ def save_image_camera_robot_coords(imgpoints, Q, disparity, rTc, checkpoints=[0,
 
     df = pd.DataFrame(camera_values, columns=column_names, index=row_names).round(decimals=2)
 
-    df.to_csv(os.path.join(save_path, 'camera_values.csv'), index=True)
+    if save_path:
+        df.to_csv(os.path.join(save_path, 'camera_values.csv'), index=True)
+
+    return df
