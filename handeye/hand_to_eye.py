@@ -343,3 +343,12 @@ def image_camera_robot_coords(imgpoints, Q, disparity, rTc, checkpoints=[0, 7, 4
         df.to_csv(os.path.join(save_path, 'camera_values.csv'), index=True)
 
     return df
+
+def load_hand_to_eye_matrix(data_path):
+    """Loads Hand to Eye calibration matrix"""
+
+    data = np.load(data_path)
+
+    rTc = data['rTc']
+
+    return rTc
