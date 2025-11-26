@@ -251,9 +251,9 @@ def robot_projection_evaluation(point_num, imgpoints, Q, disparity, rTc):
     cX_ = np.matmul(Q, projection_points)
     camera_coords = (cX_ / cX_[-1])
 
-    robot_coords = np.matmul(rTc, cX)
+    robot_coords = np.matmul(rTc, camera_coords)
 
-    return camera_coords, robot_coords[:-1]
+    return camera_coords[:-1], robot_coords[:-1]
 
 def robot_points_from_camera(imgpoints, Q, disparity, rTc, checkpoints=[0, 7, 47, 40, 9, 14, 38, 33, 18, 21, 29, 26], save_path=''):
     """Provides a list of all the points in evaluation metric.
@@ -292,3 +292,46 @@ def robot_points_from_camera(imgpoints, Q, disparity, rTc, checkpoints=[0, 7, 47
         df_robot.to_csv(os.path.join(f'{save_path}', 'robot_coords.csv'), index=True)
     
     return list(robot_coords)
+
+def save_image_camera_robot_coords(imgpoints, Q, disparity, rTc, checkpoints=[0, 7, 47, 40, 9, 14, 38, 33, 18, 21, 29, 26], save_path=''):
+    """Saves the image points, disparity, camera coordinates, and robot coordinates.
+    
+    Parameters
+    ----------
+    imagepoints: np.ndarray
+        Image points from the chessboard corner detection points.
+    Q: np.ndarray
+        A reprojection matrix of size ``4 x 4``.
+    disparity: np.ndarray
+        A disparity map generated from stereo matching.
+    rTc: np.ndarray
+        Camera to robot transformation matrix.
+    checkpoints: list
+        A list of checkpoints from the image points.
+        Keep the list empty ``[]`` if the robot coordinates of all ``imgpoints`` are needed.
+    save_path: str
+        A path to save robot_coords.
+    
+    """
+
+    for point_num in checkpoints:
+        image_point = imgpoints[point_num][0]
+
+        u, v = image_point[0].astype(int), image_point[1].astype(int)
+        
+        d = disparity[v, u]
+        
+        coords = robot_projection_evaluation(point_num ,imgpoints, Q, disparity, rTc)
+
+        camera_coords, robot_coords = zip(*coords)
+
+        point_array = np.hstack([np.array([u,v,d]), camera_coords*1e3, robot_coords[:-1]*1e3])
+
+        camera_values.append(point_array)
+
+    column_names = ['u', 'v', 'd', 'x_c', 'y_c', 'z_c', 'x_r', 'y_r', 'z_r']
+    row_names = list(range(1,len(checkpoints) + 1))
+
+    df = pd.DataFrame(camera_values, columns=column_names, index=row_names).round(decimals=2)
+
+    df.to_csv(os.path.join(save_path, 'camera_values.csv'), index=True)
