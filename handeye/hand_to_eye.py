@@ -295,7 +295,7 @@ def robot_points_from_camera(imgpoints, Q, disparity, rTc, checkpoints=[0, 7, 47
     return df_robot
 
 def image_camera_robot_coords(imgpoints, Q, disparity, rTc, checkpoints=[0, 7, 47, 40, 9, 14, 38, 33, 18, 21, 29, 26], save_path=''):
-    """Saves the image points, disparity, camera coordinates, and robot coordinates.
+    """Returns image points, disparity, camera coordinates, and robot coordinates.
     
     Parameters
     ----------
@@ -312,6 +312,11 @@ def image_camera_robot_coords(imgpoints, Q, disparity, rTc, checkpoints=[0, 7, 4
         Keep the list empty ``[]`` if the robot coordinates of all ``imgpoints`` are needed.
     save_path: str
         A path to save robot_coords.
+
+    Returns
+    -------
+    df: pandas.DataFrame
+        A dataframe object of image, disparity, camera coordinates, and robot coordinates.
     
     """
     camera_values = []
