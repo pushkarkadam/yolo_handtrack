@@ -198,7 +198,7 @@ def T_camera_to_robot(cTw, rTw):
 
     return rTc
 
-def save_transformation(transformations, file_name='Transformations', save_path='.'):
+def save_transformation(transformation_matrix, file_name='Transformations', save_path='.'):
     """Saves the transformation matrix.
     
     Parameters
@@ -209,9 +209,12 @@ def save_transformation(transformations, file_name='Transformations', save_path=
 
     """
 
+    transformations = dict()
+
     timestamp = int(time.time())
 
     transformations['timestamp'] = timestamp
+    transformations[file_name] = transformation_matrix
 
     if not file_name:
         file_name = f'Transformations_{timestamp}'
@@ -290,7 +293,7 @@ def robot_points_from_camera(imgpoints, Q, disparity, rTc, checkpoints=[0, 7, 47
     df_robot = pd.DataFrame(list(robot_coords), columns=['x','y','z'], index=list(range(1, len(checkpoints)+1)))
 
     if save_path:
-        df_robot.to_csv(os.path.join(f'{save_path}', 'robot_coords.csv'), index=True)
+        df_robot.to_csv(os.path.join(f'{save_path}', 'robot_coords.csv'), index=False)
     
     return df_robot
 
@@ -340,7 +343,7 @@ def image_camera_robot_coords(imgpoints, Q, disparity, rTc, checkpoints=[0, 7, 4
     df = pd.DataFrame(camera_values, columns=column_names, index=row_names).round(decimals=2)
 
     if save_path:
-        df.to_csv(os.path.join(save_path, 'camera_values.csv'), index=True)
+        df.to_csv(os.path.join(save_path, 'camera_values.csv'), index=False)
 
     return df
 
