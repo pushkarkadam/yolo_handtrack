@@ -355,3 +355,38 @@ def load_hand_to_eye_matrix(data_path):
     rTc = data['rTc']
 
     return rTc
+
+def reprojection_error(actual_points, calculated_points, save_path=''):
+    """Calculates RMS error in x,y,z direction.
+    
+    Parameters
+    ----------
+    actual_points: tuple
+        A ``numpy.array`` of three points measured from robot.
+    calculated_points: tuple
+        A ``numpy.array`` of three points calculated from camera to robot transformation.
+    save_path: str
+        Path to save the data.
+        
+    """
+    actual_points = np.array(actual_points)
+    calculated_points = np.array(calculated_points)
+
+    N = actual_points.shape[0]
+
+    rms_values = [np.sqrt(np.sum((a-c)**2)/N) for a, c in zip(actual_points.T, calculated_points.T)]
+
+    if save_path:
+        file_path = os.path.join(save_path, "hand_to_eye_calibration.yaml")
+
+        x_rms, y_rms, z_rms = rms_values
+
+        data = {'x_rms': float(x_rms),
+                'y_rms': float(y_rms),
+                'z_rms': float(z_rms)
+               }
+
+        with open(file_path, 'w') as file:
+            yaml.dump(data, file, default_flow_style=False, sort_keys=False)
+
+    return rms_values
