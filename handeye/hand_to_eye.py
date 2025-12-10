@@ -356,6 +356,18 @@ def load_hand_to_eye_matrix(data_path):
 
     return rTc
 
+def read_robot_calibration_points(save_path, file_name=''):
+    """Reads the three non-collinear points for robot calibration"""
+
+    if not file_name:
+        file_name = 'robot_points.csv'
+
+    robot_points = pd.read_csv(os.path.join(save_path, file_name))
+
+    p1, p2, p3 = robot_points.to_numpy()
+
+    return p1, p2, p3
+
 def reprojection_error(actual_points, calculated_points, save_path=''):
     """Calculates RMS error in x,y,z direction.
     
