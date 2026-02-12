@@ -28,6 +28,27 @@ def get_path_coords(I):
 
     return coords
 
+def euclidean_distance(p1, p2):
+    """Provides Euclidean distance between the two points.
+
+    Paramters
+    ---------
+    p1: tuple
+        Point 1 ``(x, y)`` coordinates.
+    p2: tuple
+        Point 2 ``(x, y)`` coordinates.
+
+    Returns
+    -------
+    float
+        Euclidean distance between point 1 and 2.
+        
+    """
+
+    d = np.sqrt((p2[0] - p1[0])**2 + (p2[1] - p1[1])**2)
+
+    return d
+
 def get_end_nodes(I, coords):
     """Provides end nodes.
 
@@ -240,23 +261,35 @@ def get_path_ancestry(path, start_position, goal_position):
 
     return path_coords
 
-def euclidean_distance(p1, p2):
-    """Provides Euclidean distance between the two points.
+def sort_points_by_distance(coords, goal):
+    """Sorts the coordinates in descending order of their euclidean
+    distance from the goal.
 
-    Paramters
-    ---------
-    p1: tuple
-        Point 1 ``(x, y)`` coordinates.
-    p2: tuple
-        Point 2 ``(x, y)`` coordinates.
+    The descending order approach is selected such that the node with the smallest
+    distance (i.e. one closer to the goal) is added last to the path.
+    This ensures that the node closest to the goal is selected during backtracking.
+
+    Parameters
+    ----------
+    coords: list
+        A list of tuple of the neighbouring points detected.
+    goal: tuple
+        Goal coordinate tuple ``(x, y)``.
 
     Returns
     -------
-    float
-        Euclidean distance between point 1 and 2.
-        
+    list
+        A list of neighbour coordinates organised in descending order of their distance
+        from the goal.
+    
     """
 
-    d = np.sqrt((p2[0] - p1[0])**2 + (p2[1] - p1[1])**2)
+    distances = [] 
 
-    return d
+    for c in coords:
+        d = euclidean_distance(c, goal)
+        distances.append(d)
+
+    coords_sorted = [coord for _, coord in sorted(zip(distances, coords))]
+
+    return list(reversed(coords_sorted))
