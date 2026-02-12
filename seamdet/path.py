@@ -169,7 +169,11 @@ def search_path(start_position, goal_position, I):
         cols = [c - 1 + cx for cx in cols]
 
         # Gets local path in the search kernel
-        local_path = set([(x,y) for  y, x in zip(rows, cols)])
+        local_path = [(x,y) for  y, x in zip(rows, cols)]
+
+        # Sort the coordinates by their euclidean distance to the goal
+        local_path = sort_points_by_distance(local_path, goal_position)
+        local_path_set = set(local_path)
 
         # Checks if the path has been visited
         # This is implemented to avoid sticking in local regions to backtrack to parent
@@ -183,7 +187,7 @@ def search_path(start_position, goal_position, I):
             # Continuing to next iteration
             continue
 
-        for cx, cy in zip(cols, rows):
+        for cx, cy in local_path:
             if (cx, cy) not in node_visited:
                 next_node = Node(position=(cx, cy))
                 next_node.parent = node
