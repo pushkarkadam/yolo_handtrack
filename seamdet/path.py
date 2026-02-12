@@ -177,7 +177,7 @@ def search_path(start_position, goal_position, I):
 
         # Checks if the path has been visited
         # This is implemented to avoid sticking in local regions to backtrack to parent
-        if local_path.issubset(set(node_visited)):
+        if local_path_set.issubset(set(node_visited)):
             # Removing the node from path where the algorithm reaches dead-end
             path.pop(-1)
             
