@@ -54,6 +54,40 @@ def get_end_nodes(I, coords):
 
     return end_nodes
 
+def true_end_nodes(end_nodes, tracking_ends):
+    """Selects the end nodes based on the close proximity to the tracking end nodes.
+
+    Parameters
+    ----------
+    end_nodes: list
+        A list of tuple from the possible detected end nodes.
+    tracking_ends: list
+        A list of tuple that indicate a rough estimation of where the node end points lie.
+
+    Returns
+    -------
+    tuple
+        Start and goal node coordinates in ``(x, y)`` tuple.
+    
+    """
+    start_d = []
+    goal_d = []
+
+    for node in end_nodes:
+        sd = euclidean_distance(node, tracking_ends[0])
+        gd = euclidean_distance(node, tracking_ends[1])
+
+        start_d.append(sd)
+        goal_d.append(gd)
+
+    start = [node for _, node in sorted(zip(start_d, end_nodes))]
+    goal = [node for _, node in sorted(zip(goal_d, end_nodes))]
+
+    start_node = start[0]
+    goal_node = goal[0]
+
+    return start_node, goal_node
+
 class Node:
     """
     Node class that keeps track of the path.
