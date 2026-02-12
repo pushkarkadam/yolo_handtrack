@@ -205,3 +205,24 @@ def get_path_ancestry(path, start_position, goal_position):
     path_coords.reverse()
 
     return path_coords
+
+def euclidean_distance(p1, p2):
+    """Provides Euclidean distance between the two points.
+
+    Paramters
+    ---------
+    p1: tuple
+        Point 1 ``(x, y)`` coordinates.
+    p2: tuple
+        Point 2 ``(x, y)`` coordinates.
+
+    Returns
+    -------
+    float
+        Euclidean distance between point 1 and 2.
+        
+    """
+
+    d = np.sqrt((p2[0] - p1[0])**2 + (p2[1] - p1[1])**2)
+
+    return d
