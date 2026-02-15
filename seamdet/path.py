@@ -373,3 +373,23 @@ def get_composite_paths(images, tracking_endpoints):
         composite_paths[idx]['y'] = yl
 
     return composite_paths
+
+def save_composite_plot(composite_image, composite_paths, save_path='./composite.png'):
+    """Saves the composite image plot.
+
+    Parameters
+    ----------
+    composite_image: numpy.ndarray
+        A numpy image.
+    composite_paths: dict
+        A dictionary of paths for all the line segments.
+    save_path: str, default ``'./composite.png'``
+        Path to save the plot.
+        
+    """
+    plt.imshow(composite_image, cmap="gray")
+
+    for k, v in composite_paths.items():
+        plt.plot(v['x'], v['y'])
+
+    plt.savefig(save_path)
