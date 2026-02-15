@@ -316,3 +316,60 @@ def combine_images(images):
     composite = np.sum(images, axis=0)
 
     return composite
+
+def get_composite_paths(images, tracking_endpoints):
+    """Performs composite seam line detection.
+    
+    Paramters
+    ---------
+    images: list
+        A list of numpy.ndarray images.
+    tracking_endpoints: dict
+        A dictionary of tracking end points used to find the true start and goal position.
+        Example: ``{0: [(50, 50), (100, 100)], 1: [(20, 20), (30, 20)]}``
+
+    Return
+    ------
+    dict
+        A dictionary of composite paths.
+        
+    """
+
+    composite_paths = dict()
+
+    for idx, image in enumerate(images):
+        # thinning
+        I = cv2.ximgproc.thinning(image.astype(np.uint8))
+
+        # converting to binary image
+        I = np.where(I > 1, 1, 0)
+
+        # extracting non-zero coordinates
+        coords = sd.path.get_path_coords(I)
+
+        # Getting all the possible end nodes
+        end_nodes = sd.path.get_end_nodes(I, coords)
+
+        # Extracting the endpoints for the segment
+        tracking_ends = tracking_endpoints[idx]
+
+        # Finding true end nodes
+        start, goal = sd.path.true_end_nodes(end_nodes, tracking_ends)
+
+        # Finding search path
+        path = sd.path.search_path(start, goal, I)
+
+        # Finding path ancestry
+        path_ancestry = sd.path.get_path_ancestry(path, start, goal)
+
+        # Creating a dictionary to store path
+        composite_paths[idx] = dict()
+
+        # Extracting the tuple to x and y list.
+        xl, yl = zip(*path_ancestry)
+
+        # Adding the list to the composite path
+        composite_paths[idx]['x'] = xl
+        composite_paths[idx]['y'] = yl
+
+    return composite_paths
