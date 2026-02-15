@@ -345,22 +345,22 @@ def get_composite_paths(images, tracking_endpoints):
         I = np.where(I > 1, 1, 0)
 
         # extracting non-zero coordinates
-        coords = sd.path.get_path_coords(I)
+        coords = get_path_coords(I)
 
         # Getting all the possible end nodes
-        end_nodes = sd.path.get_end_nodes(I, coords)
+        end_nodes = get_end_nodes(I, coords)
 
         # Extracting the endpoints for the segment
         tracking_ends = tracking_endpoints[idx]
 
         # Finding true end nodes
-        start, goal = sd.path.true_end_nodes(end_nodes, tracking_ends)
+        start, goal = true_end_nodes(end_nodes, tracking_ends)
 
         # Finding search path
-        path = sd.path.search_path(start, goal, I)
+        path = search_path(start, goal, I)
 
         # Finding path ancestry
-        path_ancestry = sd.path.get_path_ancestry(path, start, goal)
+        path_ancestry = get_path_ancestry(path, start, goal)
 
         # Creating a dictionary to store path
         composite_paths[idx] = dict()
