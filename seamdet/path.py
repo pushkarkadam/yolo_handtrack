@@ -297,3 +297,22 @@ def sort_points_by_distance(coords, goal):
     coords_sorted = [coord for _, coord in sorted(zip(distances, coords))]
 
     return list(reversed(coords_sorted))
+
+def combine_images(images):
+    """Combines the images.
+
+    Parameters
+    ----------
+    images: list
+        A list of numpy.ndarray images.
+
+    Returns
+    -------
+    numpy.ndarray
+        A combined image of all the images.
+        
+    """
+
+    composite = np.sum(images, axis=0)
+
+    return composite
