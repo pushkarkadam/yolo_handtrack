@@ -394,3 +394,101 @@ def save_composite_plot(composite_image, composite_paths, save_path='./composite
         plt.plot(v['x'], v['y'])
 
     plt.savefig(save_path)
+
+def checkpoint_bounding_box(checkpoints, size=1):
+    """Generates checkpoint bounding box.
+
+    Parameters
+    ----------
+    checkpoints: list
+        A list of checkpoint tuples as ``(x, y)``.
+    size: int
+        The size of the bounding box in 2x in x and y direction.
+
+    Returns
+    -------
+    list
+        A list of box corner coordinates.
+    
+    """
+
+    boxes = []
+
+    for x,y in checkpoints:
+        x_min = x - size
+        x_max = x + size
+        y_min = y - size
+        y_max = y + size
+
+        box = [x_min, y_min, x_max, y_max]
+
+        boxes.append(box)
+
+    return boxes
+
+def checkpoint_pass_check(path_coord, box):
+    """Checks if the point is in the box.
+
+    Parameters
+    ----------
+    path_coord: tuple
+        A tuple of x and y.
+    box: list
+        A list of top-left and bottom right box coordinates ``[x_min, y_min, x_max, y_max]`` in image plane.
+
+    Returns
+    -------
+    bool
+        A boolean whether the coordinate lies within the bounding box.
+        
+    """
+
+    x, y = path_coord
+    x_min, y_min, x_max, y_max = box
+
+    if (x > x_min and x < x_max) and (y > y_min and y < y_max):
+        return True
+    
+    return False
+
+def evaluate_checkpoints(checkpoints, path, bbox_size=1):
+    """Checks the checkpoints visited.
+
+    Parameters
+    ----------
+    checkpoints: list
+        A list of tuple for the checkpoints.
+    path: dict
+        A dictionary of ``'x'`` and ``'y'`` list.
+    bbox_size: int
+        Size of the box from the centre point.
+
+    Returns
+    -------
+    visited_checkpoint: list
+        A list of tuples.
+    passing_ratio: float
+        A ratio of checkpoints completed to the total checkpoints.
+        
+    """
+    path_x, path_y = list(path['x']), list(path['y'])
+
+    checkpoint_num = len(checkpoints)
+
+    visited_checkpoints = []
+
+    bboxes = checkpoint_bounding_box(checkpoints, size=bbox_size)
+
+    for x, y in zip(path_x, path_y):
+        for box, checkpoint in zip(bboxes, checkpoints):
+            if checkpoint_pass_check((x,y), box):
+                visited_checkpoints.append(checkpoint)
+                bboxes.pop(0)
+                checkpoints.pop(0)
+                break
+
+    visited_num = len(visited_checkpoints)
+    
+    passing_ratio = visited_num / checkpoint_num
+
+    return visited_checkpoints, passing_ratio
