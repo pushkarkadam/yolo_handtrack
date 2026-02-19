@@ -483,8 +483,9 @@ def evaluate_checkpoints(checkpoints, path, bbox_size=1):
         for box, checkpoint in zip(bboxes, checkpoints):
             if checkpoint_pass_check((x,y), box):
                 visited_checkpoints.append(checkpoint)
-                bboxes.pop(0)
-                checkpoints.pop(0)
+                checkpoint_idx = checkpoints.index(checkpoint)
+                bboxes.pop(checkpoint_idx)
+                checkpoints.pop(checkpoint_idx)
                 break
 
     visited_num = len(visited_checkpoints)
