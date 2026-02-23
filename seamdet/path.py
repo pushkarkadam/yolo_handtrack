@@ -50,6 +50,32 @@ def euclidean_distance(p1, p2):
 
     return d
 
+def get_tracking_endpoints(tracks_df):
+    """Returns the tracking endpoints.
+    
+    Parameters
+    ----------
+    tracks_df: pandas.dataFrame
+        A pandas dataframe with ``timestamp``, ``'x'``, and ``'y'`` values.
+
+    Returns
+    -------
+    list
+        A list of two tuples ``[start, end]``
+        
+    """
+    # Extracting first point
+    first_point = tracks_df.iloc[0]
+    start = (first_point['x'], first_point['y'])
+
+    # Extracting last point
+    last_point = tracks_df.iloc[-1]
+    end = (last_point['x'], last_point['y'])
+
+    tracking_ends = [start, end]
+
+    return tracking_ends
+
 def get_end_nodes(I, coords):
     """Provides end nodes.
 
