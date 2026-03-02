@@ -525,6 +525,7 @@ def evaluate_checkpoints(checkpoints, path, bbox_size=1):
 def point_plotter(image_path, save_file='', point_labels=["check_points"], marker_style=["x"], colors=['r']):
     """Plots the points on the image by clicking on them.
     This will be done on the rectified image.
+    This is helpful for developing ground truth.
 
     Parameters
     ----------
@@ -532,9 +533,9 @@ def point_plotter(image_path, save_file='', point_labels=["check_points"], marke
         A string of path where the image is stored.
     save_file: str, default ``''``
         A path where the results will be stored. 
-        The results are stored as ``.npz``.
+        The results are stored as ``.pkl``.
         Provide name without the extension.
-        Example: ``'~/path/to/file'``. The code will add ``'~/path/to/file.npz'`` before saving.
+        Example: ``'~/path/to/file'``. The code will add ``'~/path/to/file.pkl'`` before saving.
     point_label: list, default ``['check_points']``
         A list of different types of labels to store.
     marker_style: list, default ``["x"]``
@@ -589,6 +590,7 @@ def point_plotter(image_path, save_file='', point_labels=["check_points"], marke
         data[point_label] = label_data
     
     if save_file:
-        np.savez(save_file + '.npz', **data)
+        with open(save_file + '.pkl', 'wb') as f:
+            pickle.dump(data, f)
             
     return data
