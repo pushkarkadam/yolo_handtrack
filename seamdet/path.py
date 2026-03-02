@@ -594,3 +594,26 @@ def point_plotter(image_path, save_file='', point_labels=["check_points"], marke
             pickle.dump(data, f)
             
     return data
+
+def load_checkpoint_gt(path):
+    """Loads the checkpoint ground truth data.
+    
+    Parameters
+    ----------
+    path: str
+        Path to the pickle file.
+        Example: ``'~/path/to/pickle_file.pkl'``
+
+    Returns
+    -------
+    dict
+        A dictionary of data stored.
+
+    Examples
+    --------
+    >>> data = load_checkpoint_gt('checkpoints.pkl')
+    """
+    with open(path, 'rb') as f:
+        data = pickle.load(f)
+
+    return data
