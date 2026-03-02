@@ -2,6 +2,7 @@ import numpy as np
 import cv2
 import matplotlib.pyplot as plt
 import sys
+import pickle
 from mpl_point_clicker import clicker
 
 
