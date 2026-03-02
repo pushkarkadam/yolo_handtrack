@@ -1,6 +1,8 @@
 import numpy as np 
 import cv2
 import matplotlib.pyplot as plt
+import sys
+from mpl_point_clicker import clicker
 
 
 def get_path_coords(I):
@@ -519,3 +521,74 @@ def evaluate_checkpoints(checkpoints, path, bbox_size=1):
     passing_ratio = visited_num / checkpoint_num
 
     return visited_checkpoints, passing_ratio
+
+def point_plotter(image_path, save_file='', point_labels=["check_points"], marker_style=["x"], colors=['r']):
+    """Plots the points on the image by clicking on them.
+    This will be done on the rectified image.
+
+    Parameters
+    ----------
+    image_path: str
+        A string of path where the image is stored.
+    save_file: str, default ``''``
+        A path where the results will be stored. 
+        The results are stored as ``.npz``.
+        Provide name without the extension.
+        Example: ``'~/path/to/file'``. The code will add ``'~/path/to/file.npz'`` before saving.
+    point_label: list, default ``['check_points']``
+        A list of different types of labels to store.
+    marker_style: list, default ``["x"]``
+        A list of markers to be plotted.
+    colors: list, default ``['r']``
+        A list of colors for all the markers.
+
+    Returns
+    -------
+    dict
+        A dictionary of data points with x and y list coordinates.
+
+    Examples
+    --------
+    >>> data = point_plotter('rectified_imageL.png', 'checkpoints', ["check_points", "box"], ["x", "o"], ["r", "b"])
+        
+    """
+
+    try:
+        assert(len(point_labels) == len(marker_style) == len(colors))
+    except Exception as e:
+        print('\033[93m' + 'The size of the list of point_labels, marker_style, and colors must be equal.')
+        sys.exit(1)
+
+    image = cv2.imread(image_path)
+
+    fig, ax = plt.subplots(constrained_layout=True)
+
+    ax.imshow(image)
+
+    klicker = clicker(
+        ax,
+        point_labels,
+        markers=marker_style,
+        linestyle="--",
+        colors=colors
+    )
+
+    plt.show()
+
+    coords = klicker.get_positions()
+
+    # Dictionary to store the data
+    data = dict()
+
+    # Iterating over every type of label
+    for point_label in point_labels:
+        x_list, y_list = zip(*coords[point_label])
+
+        label_data = {'x': list(x_list), 'y': list(y_list)}
+
+        data[point_label] = label_data
+    
+    if save_file:
+        np.savez(save_file + '.npz', **data)
+            
+    return data
