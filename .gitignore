@@ -3,6 +3,8 @@ images/
 notebooks/
 data/
 weights/
+examples/handtrack/*.png
+examples/handtrack/*.npz
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
