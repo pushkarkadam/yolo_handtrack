@@ -5,6 +5,7 @@ data/
 weights/
 examples/handtrack/*.png
 examples/handtrack/*.npz
+examples/handtrack/*.pkl
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
