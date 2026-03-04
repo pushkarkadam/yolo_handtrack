@@ -128,6 +128,8 @@ if __name__ == '__main__':
                                                                                         )
 
     cv2.imwrite(os.path.join(session_save_path, "disparity.png"), disparity)
+    cv2.imwrite(os.path.join(session_save_path, "rectL.png"), rectL)
+    cv2.imwrite(os.path.join(session_save_path, "rectR.png"), rectR)
 
     pcd = sc.depth_estimation.point_cloud(rectL, 
                                     depth_limits=(0,1), 
