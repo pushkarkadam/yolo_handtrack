@@ -485,8 +485,8 @@ def rect_tracks(tracks_df, x_rect, y_rect, save_path=''):
     timestamp = list(tracks_df['timestamp'])
 
     rect_dict = {'timestamp': timestamp,
-           'x_rect': x_rect,
-           'y_rect': y_rect
+           'x': x_rect,
+           'y': y_rect
           }
 
     rect_df = pd.DataFrame.from_dict(rect_dict)
