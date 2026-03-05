@@ -167,6 +167,9 @@ if __name__ == '__main__':
     # Rectifying points
     x_rect, y_rect = sc.depth_estimation.rectify_points(x, y, mtxL, distL, R=R1, P=P1)
 
+    # Saving rectified points
+    rect_tracks_df = sc.depth_estimation.rect_tracks(tracks_df, x_rect, y_rect, os.path.join(session_save_path))
+
     rectL_copy = copy.copy(rectL)
 
     for xi, yi in zip(x_rect, y_rect):
