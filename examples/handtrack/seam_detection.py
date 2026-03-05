@@ -214,7 +214,14 @@ if __name__ == '__main__':
 
     cv2.imwrite(os.path.join(session_save_path, "dilated_image.png"), img_dil)
 
-    thinned = cv2.ximgproc.thinning(img_dil.astype(np.uint8))
+    # 2D Filter
+    k = 5
+
+    kernel = np.ones((k, k), np.float32) / 25
+
+    dst_average = cv2.filter2D(img_dil, -1, kernel)
+
+    thinned = cv2.ximgproc.thinning(dst_average.astype(np.uint8))
 
     cv2.imwrite(os.path.join(session_save_path, "thinned.png"), thinned)
 
