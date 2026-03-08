@@ -495,3 +495,22 @@ def rect_tracks(tracks_df, x_rect, y_rect, save_path=''):
         rect_df.to_csv(os.path.join(save_path, "rect_tracks.csv"), index=False)
 
     return rect_df
+
+def get_camera_coords_df(camera_coords, save_path=''):
+    """Saves the camera coordinates.
+    
+    Parameters
+    ----------
+    camera_coords: numpy.ndarray
+        Camera coordinates matrix obtain by converting the rectified image frame points to camera coordinate frame.
+    save_path: str, default ``''``
+        Path to save the data.
+        
+    """
+
+    column_names = ['x', 'y', 'z']
+
+    camera_coords_df = pd.DataFrame(camera_coords, columns=column_names)
+
+    if save_path:
+        camera_coords_df.to_csv(save_path, index=False)
