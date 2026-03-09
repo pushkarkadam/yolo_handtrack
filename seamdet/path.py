@@ -4,6 +4,8 @@ import matplotlib.pyplot as plt
 import sys
 import pickle
 from mpl_point_clicker import clicker
+import os
+import pandas as pd
 
 
 def get_path_coords(I):
@@ -618,3 +620,51 @@ def load_checkpoint_gt(path):
         data = pickle.load(f)
 
     return data
+
+def get_robot_coords(hand_eye_calibration_path, camera_coords_df, save_path):
+    """Returns the robot coordinates.
+    
+    Parameters
+    ----------
+    hand_eye_calibration_path: str
+        Path to the directory where the calibration data is stored.
+    camera_coords_df: pandas.DataFrame
+        A pandas dataframe with camera coordinates.
+    save_path: str
+        Path to the directory to store the data
+
+    Returns
+    -------
+    pandas.DataFrame
+        A pandas dataframe with the robot coordinates.
+        
+    """
+
+    rtc_path = rTc_path = os.path.join(hand_eye_calibration_path, 'rTc.npz')
+
+    # loading robot hand eye calibration data
+    rTc_data = np.load(rTc_path)
+
+    rTc = rTc_data['rTc']
+
+    column_names = ['x', 'y', 'z']
+
+    # Extracting the x, y, z coordinates from camera coordinates dataframe
+    xc, yc, zc = [np.array(camera_coords_df[i]) for i in column_names]
+
+    ones = np.ones(xc.shape)
+
+    # Creating a matrix of camera x, y, z values
+    X_c = np.vstack([xc, yc, zc, ones])
+
+    # Transforming by multiplying camera to robot Transformation matrix
+    X_r = np.matmul(rTc, X_c)
+
+    # Creating data frame by first transposing the X_r and then selecting all rows and the first three columns
+    # of the newly transformed matrix.
+    robot_coords_df = pd.DataFrame(X_r.T[:, :-1], columns=column_names)
+
+    if save_path:
+        robot_coords_df.to_csv(save_path, index=False)
+
+    return robot_coords_df
