@@ -4,6 +4,7 @@ import glob
 import os
 import open3d as o3d
 import sys 
+import pandas as pd
 
 sys.path.append('../')
 from stereocam.helpers import hsv2gray
@@ -514,3 +515,5 @@ def get_camera_coords_df(camera_coords, save_path=''):
 
     if save_path:
         camera_coords_df.to_csv(save_path, index=False)
+
+    return camera_coords_df
