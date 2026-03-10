@@ -19,7 +19,7 @@ import seamdet as sd
 if __name__ == '__main__':
     # Command line arguments
     parser = argparse.ArgumentParser(description="Search Path")
-    parser.add_argumnet('-p', '--path')
+    parser.add_argument('-p', '--path')
     parser.add_argument('-cam', '--cam_params_path', default='../../data/calib/2025-08-26-16-47', type=str, help='Camera parameters')
 
     args = parser.parse_args()
