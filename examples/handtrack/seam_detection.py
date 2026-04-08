@@ -22,7 +22,7 @@ if __name__ == '__main__':
     parser.add_argument('-c', '--confidence_threshold', default=0.4, type=float, help='Confidence threshold for YOLO.')
     parser.add_argument('-fps', '--fps', default=10, type=int, help='Frames per second.')
     parser.add_argument('-sf', '--stereo_frame', default='left', type=str, help="Frame to use while tracking. Options: 'left', 'right'")
-    parser.add_argument('-cam', '--cam_params_path', default='../../data/calib/2025-08-15-19-07', type=str, help='Camera parameters')
+    parser.add_argument('-cam', '--cam_params_path', default='../../data/calib/2025-08-26-16-47', type=str, help='Camera parameters')
 
 
     args = parser.parse_args()
@@ -130,6 +130,9 @@ if __name__ == '__main__':
     cv2.imwrite(os.path.join(session_save_path, "disparity.png"), disparity)
     cv2.imwrite(os.path.join(session_save_path, "rectL.png"), rectL)
     cv2.imwrite(os.path.join(session_save_path, "rectR.png"), rectR)
+
+    with open(os.path.join(session_save_path, 'camera_projection.npy'), 'wb') as f:
+        np.save(f, camera_projection)
 
     pcd = sc.depth_estimation.point_cloud(rectL, 
                                     depth_limits=(0,1), 
