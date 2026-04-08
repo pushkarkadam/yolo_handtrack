@@ -21,12 +21,14 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Search Path")
     parser.add_argument('-p', '--path')
     parser.add_argument('-cam', '--cam_params_path', default='../../data/calib/2025-08-26-16-47', type=str, help='Camera parameters')
+    parser.add_arguments('-hp', '--hand_eye_path', default='../../data/hand_eye_calibration/1764800285/', type=str, help='Hand Eye calibration parameter path')
 
     args = parser.parse_args()
 
     # Extracting command line variables
-    track_path = srt(args.path)
+    track_path = str(args.path)
     cam_params_path = os.path.join(args.cam_params_path, 'stereo_calib.npz')
+    hand_eye_calibration_path = str(args.hand_eye_path)
 
     # Extracting camera data
     cam_data = sc.helpers.load_calibration_data(cam_params_path)
@@ -77,7 +79,6 @@ if __name__ == '__main__':
     camera_coords_df = sc.depth_estimation.get_camera_coords_df(camera_coords, save_path=os.path.join(track_path, 'seam_path_camera_coords.csv'))
 
     # Robot coordinates
-    hand_eye_calibration_path = '../../data/hand_eye_calibration/1764800285/'
 
     rTc_path = os.path.join(hand_eye_calibration_path, 'rTc.npz')
 
