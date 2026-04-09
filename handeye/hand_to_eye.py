@@ -207,7 +207,10 @@ def save_transformation(transformation_matrix, file_name='Transformations', save
     ----------
     transformations: dict
         A dictionary of transformation matrices that needs to be saved.
-    file_name: 
+    file_name: str, default ``'Transformations'``.
+        Name of the file to be saved.
+    save_path: str, default ``'.'``
+        Path to save the transformations.
 
     """
 
@@ -350,7 +353,14 @@ def image_camera_robot_coords(imgpoints, Q, disparity, rTc, checkpoints=[0, 7, 4
     return df
 
 def load_hand_to_eye_matrix(data_path):
-    """Loads Hand to Eye calibration matrix"""
+    """Loads Hand to Eye calibration matrix.
+    
+    Parameters
+    ----------
+    data_path: str
+        Path where the data is stored. The path is the root directory of the calibration matrices stored.
+
+    """
 
     data = np.load(data_path)
 
@@ -359,7 +369,21 @@ def load_hand_to_eye_matrix(data_path):
     return rTc
 
 def read_robot_calibration_points(save_path, file_name=''):
-    """Reads the three non-collinear points for robot calibration"""
+    """Reads the three non-collinear points for robot calibration.
+    
+    Parameters
+    ----------
+    save_path: str
+        Path to save.
+    file_name: str, default ``''``
+        Name of the file.
+
+    Returns
+    -------
+    tuple
+        A tuple of float
+
+    """
 
     if not file_name:
         file_name = 'robot_points.csv'
@@ -379,7 +403,7 @@ def reprojection_error(actual_points, calculated_points, save_path=''):
         A ``numpy.array`` of three points measured from robot.
     calculated_points: tuple
         A ``numpy.array`` of three points calculated from camera to robot transformation.
-    save_path: str
+    save_path: str, default ``''``
         Path to save the data.
         
     """
