@@ -4,6 +4,7 @@ import glob
 import os
 import open3d as o3d
 import sys 
+import pandas as pd
 
 sys.path.append('../')
 from stereocam.helpers import hsv2gray
@@ -468,3 +469,51 @@ def visualise_points(pcd, points3d, color=[1, 0, 0], cloud_frame_size=0.05):
     points_to_add.paint_uniform_color(color)
     axis = o3d.geometry.TriangleMesh.create_coordinate_frame(size=cloud_frame_size, origin=[0, 0, 0])
     o3d.visualization.draw_geometries([pcd, points_to_add, axis])
+
+def rect_tracks(tracks_df, x_rect, y_rect, save_path=''):
+    """Saves the csv file for rectified tracks.
+    
+    Parameters
+    ----------
+    tracks_df: pandas.DataFrame
+        A pandas dataframe of the tracks
+    x_rect: list
+        A list of x coordinates.
+    y_rect: list
+        A list of y coordinates.
+        
+    """
+    timestamp = list(tracks_df['timestamp'])
+
+    rect_dict = {'timestamp': timestamp,
+           'x': x_rect,
+           'y': y_rect
+          }
+
+    rect_df = pd.DataFrame.from_dict(rect_dict)
+
+    if save_path:
+        rect_df.to_csv(os.path.join(save_path, "rect_tracks.csv"), index=False)
+
+    return rect_df
+
+def get_camera_coords_df(camera_coords, save_path=''):
+    """Saves the camera coordinates.
+    
+    Parameters
+    ----------
+    camera_coords: numpy.ndarray
+        Camera coordinates matrix obtain by converting the rectified image frame points to camera coordinate frame.
+    save_path: str, default ``''``
+        Path to save the data.
+        
+    """
+
+    column_names = ['x', 'y', 'z']
+
+    camera_coords_df = pd.DataFrame(camera_coords, columns=column_names)
+
+    if save_path:
+        camera_coords_df.to_csv(save_path, index=False)
+
+    return camera_coords_df

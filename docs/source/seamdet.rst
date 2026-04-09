@@ -9,3 +9,11 @@ Seam detection
     :members:
     :undoc-members:
     :show-inheritance:
+
+Search Path
+-----------
+
+.. automodule:: seamdet.path
+    :members:
+    :undoc-members:
+    :show-inheritance:

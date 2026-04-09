@@ -6,6 +6,8 @@ import time
 import argparse 
 import datetime
 import copy
+import pandas as pd
+import pickle
 
 
 sys.path.append('../..')
@@ -22,18 +24,19 @@ if __name__ == '__main__':
     parser.add_argument('-c', '--confidence_threshold', default=0.4, type=float, help='Confidence threshold for YOLO.')
     parser.add_argument('-fps', '--fps', default=10, type=int, help='Frames per second.')
     parser.add_argument('-sf', '--stereo_frame', default='left', type=str, help="Frame to use while tracking. Options: 'left', 'right'")
-    parser.add_argument('-cam', '--cam_params_path', default='../../data/calib/2025-08-26-16-47', type=str, help='Camera parameters')
-
+    parser.add_argument('-cam', '--cam_params_path', default='../../data/calib/2025-08-15-19-07', type=str, help='Camera parameters')
+    parser.add_arguments('-hp', '--hand_eye_path', default='../../data/hand_eye_calibration/1764800285/', type=str, help='Hand Eye calibration parameter path')
 
     args = parser.parse_args()
 
     save_path = str(args.save_path)
     frame_size = tuple(args.frame_size)
     confidence_threshold = float(args.confidence_threshold)
-    # print(confidence_threshold, type(confidence_threshold))
+    
     fps = int(args.fps)
     stereo_frame = str(args.stereo_frame)
     cam_params_path = os.path.join(args.cam_params_path, 'stereo_calib.npz')
+    hand_eye_calibration_path = str(args.hand_eye_path)
 
     cam_data = sc.helpers.load_calibration_data(cam_params_path)
 
@@ -241,3 +244,48 @@ if __name__ == '__main__':
 
     points3d = sc.depth_estimation.image_points_to_camera(col_indices, row_indices, camera_projection, max_depth=1, min_depth=0.4)
     sc.depth_estimation.visualise_points(pcd, points3d)
+
+
+    # Seam path search
+    # ^^^^^^^^^^^^^^^^
+
+    track_path = copy.copy(session_save_path)
+
+    I = copy.copy(thinned)
+
+    I = np.where(I>=1, 1, 0)
+
+    coords = sd.path.get_end_nodes(I, coords)
+
+    tracking_ends = sd.path.get_tracking_endpoints(rect_tracks_df)
+
+    start, goal = sd.path.true_end_nodes(end_nodes, tracking_ends)
+
+    start_time = time.time()
+
+    seam_path = sd.path.search_path(start, goal, I)
+
+    print(f'Time elapsed: {(time.time() - start_time):.4f}s')
+
+    path_ancestory = sd.path.get_path_ancestry(seam_path, start, goal)
+
+    seam_path_file = os.path.join(track_path, "seam_path_coords.pkl")
+
+    # seam path
+    xl, yl = zip(*path_ancestory)
+
+    seam_path_dict = {'x': xl, 'y': yl}
+    
+    with open(seam_path_file, 'wb') as f:
+        pickle.dump(seam_path_dict, f)
+
+    # Convert image points to camera coordinates
+    camera_coords = sc.depth_estimation.image_points_to_camera(np.array(xl), np.array(yl), camera_projection)
+
+    camera_coords_df = sc.depth_estimation.get_camera_coords_df(camera_coords, save_path=os.path.join(track_path, 'seam_path_camera_coords.csv'))
+
+    # Robot coordinates
+
+    rTc_path = os.path.join(hand_eye_calibration_path, 'rTc.npz')
+
+    robot_coords_df = sd.path.get_robot_coords(hand_eye_calibration_path, camera_coords_df, save_path=os.path.join(track_path, "seam_path_robot_coords.csv"))
