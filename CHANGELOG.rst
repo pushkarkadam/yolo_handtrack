@@ -14,6 +14,7 @@ and this project adheres to `Semantic Versioning`_.
 -----------
 Added
 ^^^^^
+- Added seam search path to ``seamdet`` package.
 - Created a new package called ``seamdet``.
 - Command line arguments added to live tracking example.
 - Get yolo handpose model path function added.
