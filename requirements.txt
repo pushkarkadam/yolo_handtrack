@@ -17,3 +17,5 @@ ultralytics
 open3d
 pyudev
 mpl_point_clicker
+opencv-contrib-python
+sphinxcontrib-mermaid
