@@ -826,6 +826,7 @@ class YOLOHandPoseLiveRecord(YOLOHandPose):
         try:
             for i in range(5):
                 print(f"Count: {i}")
+                time.sleep(1)
                 success, img = cap.read()
     
             if self.stereo_frame:
