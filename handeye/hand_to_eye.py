@@ -44,7 +44,8 @@ def get_image_points(rect_img,
         The value of ``(-1,-1)`` indicates that there is no such a size.
     cornerSubPix_criteria: tuple, default ``(cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)``
         A tuple of critereo that is used in fine grained sub pixed calculations.
-    save_path=""
+    save_path: str, default ``''``
+        Path to save the image
 
     Returns
     -------
