@@ -14,6 +14,7 @@ and this project adheres to `Semantic Versioning`_.
 -----------
 Added
 ^^^^^
+- Robot Hand-to-Eye calibration ``handeye`` package added.
 - Added seam search path to ``seamdet`` package.
 - Created a new package called ``seamdet``.
 - Command line arguments added to live tracking example.

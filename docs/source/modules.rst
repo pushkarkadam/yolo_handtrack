@@ -4,3 +4,4 @@
     stereocam
     handtrack
     seamdet
+    handeye
