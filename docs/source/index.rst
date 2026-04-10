@@ -12,6 +12,7 @@ Welcome to yolo_handtrack's documentation!
 
    readme
    modules
+   handeye_calibration
    documentation
    changelog
 
