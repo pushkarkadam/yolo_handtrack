@@ -27,6 +27,11 @@ Activate the virtual environment:
 
     source venv/bin/activate
 
+.. note::
+
+    This is a note to future self. We are working on ``venv3`` virtual environment on work computer.
+    This environment has all the packages as per their correct version.
+
 Installing packages
 -------------------
 
