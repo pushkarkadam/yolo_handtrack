@@ -6,7 +6,7 @@ Seam Detection Robot Experiments
 Directory Structure
 -------------------
 
-The following directory structure is created under the directory ``${HOME}/robot_seam_exp``
+The following directory structure is created under the directory ``${HOME}/Documents/robot_seam_exp``
 
 .. code:: bash 
 
@@ -59,3 +59,81 @@ To evaluate the seam line path along with the ground truth data run the followin
     python checkpoint_evaluation.py \
     -p ${HOME}/Documents/robot_seam_exp/seam_line_exp/2026-04-16-18-30 \
     -b 1
+
+Robot Path implementation
+-------------------------
+
+To implement this, we use ROS2 path following package that we developed.
+
+This will be perfomed using ROS2 package called ``robot_cell_path_planning``.
+
+Starting the robot
+^^^^^^^^^^^^^^^^^^
+
+When the robot boots up, ``Open > Program > remote_control.urp``.
+
+This will load a program where there is remote control with the remote computer IP address enabled.
+
+Configuring environment
+^^^^^^^^^^^^^^^^^^^^^^^
+
+The first step would be to ensure that all the ROS2 workspace is enabled.
+
+Type the following to enable the ROS2 workspace.
+
+.. code-block:: bash
+
+    source /opt/ros/humble/setup.bash && cd Documents/code_project/ros2_ws/ && source install/setup.bash
+
+The above code first enables the ROS2 environment, then, we reach to the local ROS2 workspace ``ros2_ws`` and enable the local workspace.
+
+
+Starting robot driver in ROS2
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Starting all the ROS2 related items for the calibration.
+Execute the following in different terminals.
+
+Create an environment variable for the robot IP address as follows:
+
+
+.. code-block:: bash
+
+    export ROBOT_IP=196.168.x.x # This should be the robot IP set up
+
+.. code-block:: bash
+
+    ros2 launch robot_cell_control start_robot.launch.py use_fake_hardware:='False' use_fake_sensor:='False' robot_ip:=${ROBOT_IP} initial_joint_controller:=scaled_joint_trajectory_controller kinematics_params_file:="${HOME}/my_robot_calibration.yaml"
+
+Starting MoveIt2
+^^^^^^^^^^^^^^^^
+
+Start Moveit2 with the following commands in two separate terminals.
+
+.. code-block:: bash
+
+    ros2 launch robot_cell_moveit_config move_group.launch.py
+
+
+.. code-block:: bash 
+
+    ros2 launch robot_cell_moveit_config moveit_rviz.launch.py
+
+Robot Path following
+^^^^^^^^^^^^^^^^^^^^
+
+Here, the robot coordinate saved in `Seam path search`_ will be used as an input
+for the robot path.
+
+In a new terminal type the following:
+
+.. code-block:: bash 
+
+    ros2 run robot_cell_path_planning \
+    weld_path \
+    ${HOME}/Documents/robot_seam_exp/seam_line_exp/2026-04-16-18-30/seam_path_robot_coords.csv
+
+.. warning:: 
+
+    If the depth estimation is not done properly then those points are eliminated when determining the robot path.
+    In this case, observe disparity map to make sure that depth estimation is done properly.
