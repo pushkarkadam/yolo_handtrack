@@ -11,6 +11,7 @@ Welcome to yolo_handtrack's documentation!
    :caption: Contents:
 
    readme
+   installation
    modules
    handeye_calibration
    documentation
