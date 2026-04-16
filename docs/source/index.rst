@@ -12,9 +12,9 @@ Welcome to yolo_handtrack's documentation!
 
    readme
    installation
+   documentation
    modules
    handeye_calibration
-   documentation
    seam_detection_experiment
    changelog
 
