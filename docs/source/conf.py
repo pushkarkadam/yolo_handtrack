@@ -23,7 +23,8 @@ release = '0.0.0'
 extensions = ['sphinx.ext.autodoc',
 'sphinx.ext.napoleon',
 'sphinx.ext.viewcode',
-'sphinxcontrib.mermaid']
+'sphinxcontrib.mermaid',
+'sphinx_copybutton']
 
 templates_path = ['_templates']
 exclude_patterns = []
