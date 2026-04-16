@@ -777,14 +777,19 @@ class YOLOHandPoseLiveRecord(YOLOHandPose):
         """
 
         idx = 0
-        
-        # For landmark
-        if self.xy[idx][idx]:
 
-            xy  = self.xy[idx][idx][keypoint]
-    
-            self.tracks.append(xy)
-            self.tracks_timestamp.append(time.time())
+        print(f'confidence: {self.confidence[idx]}')
+
+        if self.confidence[idx]:
+            if self.confidence[idx][idx] >= self.confidence_threshold:
+            
+                # For landmark
+                if self.xy[idx][idx]:
+
+                    xy  = self.xy[idx][idx][keypoint]
+            
+                    self.tracks.append(xy)
+                    self.tracks_timestamp.append(time.time())
 
     def _write_tracks(self):
         """Writes tracks to csv file."""
