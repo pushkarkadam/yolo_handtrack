@@ -47,16 +47,14 @@ if __name__ == '__main__':
 
     cam_index = sc.capture_images.detect_stereo_camera("zed")
 
-    if not cam_index:
-        print("Stereo camera not detected")
-        sys.exit(1)
-
     model_path = ht.helpers.get_yolo_handpose_model('../../weights')
 
     session_save_path = os.path.join(save_path, str(date))
 
     os.makedirs(session_save_path, exist_ok=True)
     print(f"Created directory: {session_save_path}")
+
+    print(f'Cam Index: {cam_index}')
 
     live_det = ht.pose_track.YOLOHandPoseLiveRecord(cam=cam_index, 
                                                     fps=fps, 

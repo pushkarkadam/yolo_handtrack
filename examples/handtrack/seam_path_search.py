@@ -21,7 +21,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Search Path")
     parser.add_argument('-p', '--path')
     parser.add_argument('-cam', '--cam_params_path', default='../../data/calib/2025-08-26-16-47', type=str, help='Camera parameters')
-    parser.add_arguments('-hp', '--hand_eye_path', default='../../data/hand_eye_calibration/1764800285/', type=str, help='Hand Eye calibration parameter path')
+    parser.add_argument('-hp', '--hand_eye_path', default='../../data/hand_eye_calibration/1764800285/', type=str, help='Hand Eye calibration parameter path')
 
     args = parser.parse_args()
 

@@ -2,8 +2,8 @@
 handeye package
 ===============
 
-Seam detection
---------------
+Hand to Eye Calibration
+-----------------------
 
 .. automodule:: handeye.hand_to_eye
     :members:
