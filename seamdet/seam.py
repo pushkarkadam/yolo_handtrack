@@ -329,3 +329,46 @@ def patch_roi(I, roi_images):
             r+=1
     
     return I
+
+def remove_smaller_clusters(binary_image):
+    """
+    Identifies clusters in an edge-detected image and removes the smaller one.
+    
+    Parameters
+    -----------    
+    binary_image: numpy.ndarray
+        Binary edge-detected image.
+        
+    Returns
+    --------
+    output_image: numpy.ndarray
+        Image containing only the largest cluster.
+
+    Examples
+    --------
+    >>> edge_image = cv2.imread('~/path/to/file.png', 0)
+    >>> binary_image = np.where(edge_image>=1, 1, 0)
+    >>> img = remove_smaller_cluster(bin_image.astype(np.uint8))
+    
+    """
+    # connectivity=8 looks at all 8 pixels surrounding a pixel
+    num_labels, labels, stats, centroids = cv2.connectedComponentsWithStats(binary_image, connectivity=8)
+
+    # If there are fewer than 2 clusters (excluding background), return the image as is
+    if num_labels <= 2:
+        return binary_image
+
+    # Extract areas (stats[label, cv2.CC_STAT_AREA])
+    # Label 0 is always the background, so we slice from index 1
+    areas = stats[1:, cv2.CC_STAT_AREA]
+    
+    # Find the index of the largest cluster
+    # We add 1 because we sliced the background out of the 'areas' array
+    largest_label = np.argmax(areas) + 1
+
+    # Create a mask where only the largest cluster is kept
+    # result is 1 where labels == largest_label, else 0
+    output_image = np.zeros_like(binary_image)
+    output_image[labels == largest_label] = 1
+
+    return output_image.astype(np.uint8)

@@ -224,6 +224,8 @@ if __name__ == '__main__':
 
     thinned = cv2.ximgproc.thinning(dst_average.astype(np.uint8))
 
+    thinned = sd.seam.remove_smaller_clusters(thinned)
+
     cv2.imwrite(os.path.join(session_save_path, "thinned.png"), thinned)
 
     # Extracting points
