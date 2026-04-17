@@ -348,7 +348,7 @@ def remove_smaller_clusters(binary_image):
     --------
     >>> edge_image = cv2.imread('~/path/to/file.png', 0)
     >>> binary_image = np.where(edge_image>=1, 1, 0)
-    >>> img = remove_smaller_cluster(bin_image.astype(np.uint8))
+    >>> img = remove_smaller_clusters(bin_image.astype(np.uint8))
     
     """
     # connectivity=8 looks at all 8 pixels surrounding a pixel
