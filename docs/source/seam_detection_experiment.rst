@@ -25,7 +25,11 @@ Make sure to add the stereo calibration results subdirectory inside the ``stereo
 Seam Line Detection
 -------------------
 
-Browse to the ``examples/handtrack`` directory from the root of this repository.
+Browse to the ``examples/handtrack`` directory from the root of this repository as follows:
+
+.. code-block:: bash
+
+    cd examples/handtrack
 
 To run the hand tracking to seam line detection, run the following:
 
