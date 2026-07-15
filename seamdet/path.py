@@ -228,7 +228,6 @@ def search_path(start_position, goal_position, I):
 
         node = next_node
 
-        print(f'count: {count}')
         count+=1
         
     
