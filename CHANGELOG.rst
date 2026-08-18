@@ -14,6 +14,8 @@ and this project adheres to `Semantic Versioning`_.
 -----------
 Added
 ^^^^^
+- Added A* search algorithm for comparison.
+- Added checkpoint evaluation method to ``seamdet``.
 - Robot Hand-to-Eye calibration ``handeye`` package added.
 - Added seam search path to ``seamdet`` package.
 - Created a new package called ``seamdet``.
