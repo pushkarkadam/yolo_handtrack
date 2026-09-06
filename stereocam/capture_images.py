@@ -362,7 +362,8 @@ def capture_stereo_image(cam_num, image_resolution=(672, 376)):
     ----------
     cam_num: int
         The index of the camera detected.
-    image_resolution: tuple, default ``(672, 376)
+    image_resolution: tuple, default ``(672, 376)``
+        The image size as the input.
 
     Returns
     -------
