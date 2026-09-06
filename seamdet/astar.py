@@ -68,7 +68,7 @@ class Node:
 class AStar:
     """This is Astar search algorithm.
 
-    The algorithm is taken from the _open-source github project.
+    The algorithm is taken from the `open-source`_ github project.
     The only modification made to this project is the ``delta`` list variable.
     Functionality is added for the algorithm to travel diagonally.
 

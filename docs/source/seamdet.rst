@@ -17,3 +17,11 @@ Search Path
     :members:
     :undoc-members:
     :show-inheritance:
+
+A* Search
+---------
+
+.. automodule:: seamdet.astar
+    :members:
+    :undoc-members:
+    :show-inheritance:
