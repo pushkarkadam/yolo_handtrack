@@ -5,3 +5,4 @@
     handtrack
     seamdet
     handeye
+    learning
