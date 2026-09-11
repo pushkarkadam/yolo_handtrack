@@ -691,3 +691,33 @@ def draw_object_axes(image, centroid, eigenvectors, eigenvalues, scale=1.0, prim
         output = cv2.arrowedLine(output, np.int32(centroid), end_point, color, 2, tipLength=0.1)
 
     return output
+
+def image_transformation_matrix(T_WO, T_PO):
+    """Transformation matrix between two images ``{W}`` and ``{P}``.
+    The object frame is represented by frame ``{O}``.
+    The subscript in the matrix represent these frames.
+
+    ``{W}`` is for the world frame which is the frame used in demo.
+    ``{P}`` is the translated frame when the object is moved.
+    ``{O}`` is the object frame. Object is assumed to be stable in
+    each of the frames.
+
+    Parameters
+    ----------
+    T_PO: numpy.ndarray
+        A transformation matrix from object to transformed image frame.
+    T_WO: numpy.ndarray
+        A transformation matrix from object to world frame.
+
+    Returns
+    -------
+    T_PW: numpy.ndarray
+        A transformation matrix from world to transformed frame.
+        This matrix transforms points in the world coordinates to the 
+        transformed coordinates.
+        
+    """
+    
+    T_PW = T_PO @ np.linalg.inv(T_WO)
+
+    return T_PW
