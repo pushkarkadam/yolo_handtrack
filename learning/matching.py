@@ -333,7 +333,7 @@ class MatchingDataCollection:
 
             i += 1
 
-def background_subtraction(bg, fg, threshold=30, kernel_size=(5,5), threshold_type=cv2.THRESH_BINARY, save_path=''):
+def background_subtraction(bg, fg, kernel_size=(5,5), save_path=''):
     """Performs background subtraction.
     
     Parameters
@@ -344,8 +344,6 @@ def background_subtraction(bg, fg, threshold=30, kernel_size=(5,5), threshold_ty
         A numpy array of colour image with object.
     kernel_size: tuple, default ``(5, 5)``
         Kernel size for erosion morphological operation.
-    threshold_type: int, default ``cv2.THRESH_BINARY``.
-        This takes the threshold type from the enum available from opencv.
     save_path: str, default ``''``
         Path to save the data.
         
@@ -358,8 +356,10 @@ def background_subtraction(bg, fg, threshold=30, kernel_size=(5,5), threshold_ty
     # Calculate absolute difference
     difference = cv2.absdiff(bg, fg)
 
-    # threshold operation
-    _, mask = cv2.threshold(difference, threshold, 255, threshold_type)
+    # Otsu's threshold
+    optimal_thresh, mask = cv2.threshold(
+        difference, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU
+    )
 
     # Remove small noise
     kernel = np.ones(kernel_size, np.uint8)
@@ -401,4 +401,4 @@ def background_subtraction(bg, fg, threshold=30, kernel_size=(5,5), threshold_ty
             cv2.imwrite(image_path, output)
             print(f'Image saved {image_path}')
 
-        return output
+        return output, object_mask
