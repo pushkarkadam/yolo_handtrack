@@ -332,3 +332,73 @@ class MatchingDataCollection:
             self.fgs.append((fg_left, fg_right))
 
             i += 1
+
+def background_subtraction(bg, fg, threshold=30, kernel_size=(5,5), threshold_type=cv2.THRESH_BINARY, save_path=''):
+    """Performs background subtraction.
+    
+    Parameters
+    ----------
+    bg: numpy.ndarray
+        A numpy array of colour image representing background without object.
+    fg: numpy.ndarray
+        A numpy array of colour image with object.
+    kernel_size: tuple, default ``(5, 5)``
+        Kernel size for erosion morphological operation.
+    threshold_type: int, default ``cv2.THRESH_BINARY``.
+        This takes the threshold type from the enum available from opencv.
+    save_path: str, default ``''``
+        Path to save the data.
+        
+    """
+
+    # converting images to grayscale
+    bg = cv2.cvtColor(bg, cv2.COLOR_BGR2GRAY)
+    fg = cv2.cvtColor(fg, cv2.COLOR_BGR2GRAY)
+    
+    # Calculate absolute difference
+    difference = cv2.absdiff(bg, fg)
+
+    # threshold operation
+    _, mask = cv2.threshold(difference, threshold, 255, threshold_type)
+
+    # Remove small noise
+    kernel = np.ones(kernel_size, np.uint8)
+    mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel)
+
+    # Find the largest foreground object
+    contours, _ = cv2.findContours(
+        mask,
+        cv2.RETR_EXTERNAL,
+        cv2.CHAIN_APPROX_SIMPLE
+    )
+    
+    print(f'Number of contours: {len(contours)}')
+    
+    if contours:
+        # Assume the largest detected object is the foreground object
+        largest_contour = max(contours, key=cv2.contourArea)
+    
+        # Create a clean black mask
+        object_mask = np.zeros_like(mask)
+    
+        # Fill the object
+        cv2.drawContours(
+            object_mask,
+            [largest_contour],
+            -1,
+            255,
+            thickness=cv2.FILLED
+        )
+    
+        # Create completely black output
+        output = np.zeros_like(fg)
+    
+        # Keep only the foreground object
+        output[object_mask == 255] = fg[object_mask == 255]
+
+        if save_path:
+            image_path = os.path.join(save_path, 'bg_subtracted.png')
+            cv2.imwrite(image_path, output)
+            print(f'Image saved {image_path}')
+
+        return output
