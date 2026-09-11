@@ -501,3 +501,216 @@ def find_rectangle_corners(mask):
     corners = order_corners(corners)
 
     return corners
+
+def find_object_axes(binary_image):
+    """
+    Find the centroid, eigenvalues, eigenvectors and
+    homogeneous transformation matrix of a binary object.
+
+    Paramters
+    ---------
+    binary_image: np.array
+        Binary image as an object mask.
+        
+
+    Returns
+    -------
+    centroid: tuple
+        Coordinates of the centroid ``(cx, cy)`` of the object where the coordinate frame will be placed.
+    eigenvalues: np.array 
+        sorted eigenvalues
+    eigenvectors: np.array 
+        corresponding eigenvectors
+    T: np.array 
+        3x3 homogeneous transformation matrix.
+        
+    """
+
+    # ---------------------------------------------------------
+    # 1. Check input
+    # ---------------------------------------------------------
+    if len(binary_image.shape) != 2:
+        raise ValueError("Input image must be a grayscale binary image.")
+
+    # Convert to binary
+    mask = binary_image > 0
+
+    # Get coordinates of object pixels
+    # OpenCV/image coordinates:
+    # x = column
+    # y = row
+    y, x = np.nonzero(mask)
+
+    if len(x) == 0:
+        raise ValueError("No object found in the binary image.")
+
+    # ---------------------------------------------------------
+    # 2. Calculate centroid
+    # ---------------------------------------------------------
+    cx = np.mean(x)
+    cy = np.mean(y)
+
+    centroid = np.array([cx, cy])
+
+    # ---------------------------------------------------------
+    # 3. Center all object points around centroid
+    # ---------------------------------------------------------
+    points = np.column_stack((x, y)).astype(np.float64)
+
+    centered_points = points - centroid
+
+    # ---------------------------------------------------------
+    # 4. Calculate covariance matrix
+    # ---------------------------------------------------------
+    covariance = np.cov(centered_points, rowvar=False)
+
+    print("Centroid:")
+    print(centroid)
+
+    print("\nCovariance matrix:")
+    print(covariance)
+
+    # ---------------------------------------------------------
+    # 5. Calculate eigenvalues and eigenvectors
+    # ---------------------------------------------------------
+    eigenvalues, eigenvectors = np.linalg.eigh(covariance)
+
+    # np.linalg.eigh returns eigenvalues in ascending order.
+    # We want the largest eigenvalue first because it corresponds
+    # to the object's major axis.
+    order = np.argsort(eigenvalues)[::-1]
+
+    eigenvalues = eigenvalues[order]
+    eigenvectors = eigenvectors[:, order]
+
+    # ---------------------------------------------------------
+    # 6. Make eigenvector directions deterministic
+    # ---------------------------------------------------------
+    # Eigenvectors can arbitrarily point in either direction.
+    # We force the first principal axis to point approximately
+    # in the +x direction when possible.
+
+    # NOTE: Not making eigenvalue directions deterministic as
+    # forcing eigen vector's direction affects object's true
+    # orientation
+    
+    
+    # if eigenvectors[0, 0] < 0:
+    #     eigenvectors[:, 0] *= -1
+
+    # Make the second axis form a right-handed 2D coordinate
+    # system with the first axis.
+    
+    # if np.linalg.det(eigenvectors) < 0:
+    #     eigenvectors[:, 1] *= -1
+
+    print("\nEigenvalues:")
+    print(eigenvalues)
+
+    print("\nEigenvectors:")
+    print(eigenvectors)
+
+    # ---------------------------------------------------------
+    # 7. Construct the 3x3 transformation matrix
+    # ---------------------------------------------------------
+    #
+    # eigenvectors[:,0] = X axis of object
+    # eigenvectors[:,1] = Y axis of object
+    #
+    # The columns of R are the object axes expressed in
+    # image coordinates.
+    #
+    #                | vx1  vx2  cx |
+    # T =            | vy1  vy2  cy |
+    #                |  0    0    1 |
+    #
+    R = np.eye(3)
+
+    R[0:2, 0] = eigenvectors[:, 0]
+    R[0:2, 1] = eigenvectors[:, 1]
+
+    T = R.copy()
+
+    T[0, 2] = cx
+    T[1, 2] = cy
+
+    print("\n3x3 Transformation matrix:")
+    print(T)
+
+    return centroid, eigenvalues, eigenvectors, T
+
+
+def draw_object_axes(image, centroid, eigenvectors, eigenvalues):
+    """
+    Draw centroid and PCA axes on the image.
+
+    Parameters
+    ----------
+    image: np.array
+        Image to draw axes.
+    centroid: np.array
+        Centroid coordinates where the frame rests.
+    eigenvectors: np.array
+        Eigenvectors show the direction of the axes.
+    eigenvalues: np.array
+        Eigenvalues show the length of the axes.
+
+    Returns
+    -------
+    output: np.array
+        A numpy array of image with renderings of axes.
+        
+    """
+    output = cv2.cvtColor(image, cv2.COLOR_GRAY2BGR)
+
+    cx, cy = centroid
+
+    # Length of axes for visualization
+    scale = 3.0
+
+    # Length based on object size
+    length1 = scale * np.sqrt(eigenvalues[0])
+    length2 = scale * np.sqrt(eigenvalues[1])
+
+    # Major axis
+    p1 = np.array([
+        cx - eigenvectors[0, 0] * length1,
+        cy - eigenvectors[1, 0] * length1
+    ])
+
+    p2 = np.array([
+        cx + eigenvectors[0, 0] * length1,
+        cy + eigenvectors[1, 0] * length1
+    ])
+
+    # Minor axis
+    p3 = np.array([
+        cx - eigenvectors[0, 1] * length2,
+        cy - eigenvectors[1, 1] * length2
+    ])
+
+    p4 = np.array([
+        cx + eigenvectors[0, 1] * length2,
+        cy + eigenvectors[1, 1] * length2
+    ])
+
+    # Convert to integer pixel coordinates
+    p1 = tuple(np.round(p1).astype(int))
+    p2 = tuple(np.round(p2).astype(int))
+    p3 = tuple(np.round(p3).astype(int))
+    p4 = tuple(np.round(p4).astype(int))
+
+    # Draw axes
+    cv2.line(output, p1, p2, (0, 0, 255), 2)  # Major axis
+    cv2.line(output, p3, p4, (0, 255, 0), 2)  # Minor axis
+
+    # Draw centroid
+    cv2.circle(
+        output,
+        (int(round(cx)), int(round(cy))),
+        5,
+        (255, 0, 0),
+        -1
+    )
+
+    return output
