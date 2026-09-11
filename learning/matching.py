@@ -402,3 +402,102 @@ def background_subtraction(bg, fg, kernel_size=(5,5), save_path=''):
             print(f'Image saved {image_path}')
 
         return output, object_mask
+
+def order_corners(points):
+    """
+    Order four points as:
+        top-left
+        top-right
+        bottom-right
+        bottom-left
+    """
+
+    points = np.asarray(points, dtype=np.float32)
+
+    # Sum and difference of coordinates
+    s = points.sum(axis=1)
+    d = np.diff(points, axis=1).flatten()
+
+    top_left = points[np.argmin(s)]
+    bottom_right = points[np.argmax(s)]
+
+    top_right = points[np.argmin(d)]
+    bottom_left = points[np.argmax(d)]
+
+    return np.array([
+        top_left,
+        top_right,
+        bottom_right,
+        bottom_left
+    ], dtype=np.float32)
+
+
+def find_rectangle_corners(mask):
+    """
+    Find the four corners of the largest rectangular object
+    in a binary mask.
+
+    Parameters
+    ----------
+    mask : numpy.ndarray
+        Binary image. Object should be white (255),
+        background should be black (0).
+
+    Returns
+    -------
+    corners : numpy.ndarray
+        Four corners in order:
+        [top-left, top-right, bottom-right, bottom-left]
+    """
+
+    # Find contours
+    contours, _ = cv2.findContours(
+        mask,
+        cv2.RETR_EXTERNAL,
+        cv2.CHAIN_APPROX_SIMPLE
+    )
+
+    if len(contours) == 0:
+        raise ValueError("No object found in the mask.")
+
+    # Select largest contour
+    contour = max(contours, key=cv2.contourArea)
+
+    # Perimeter of contour
+    perimeter = cv2.arcLength(contour, True)
+
+    # Approximate contour with polygon
+    # Try different epsilon values if necessary
+    epsilon = 0.02 * perimeter
+
+    approx = cv2.approxPolyDP(
+        contour,
+        epsilon,
+        True
+    )
+
+    # We expect four corners
+    if len(approx) != 4:
+
+        # Try a slightly larger approximation
+        epsilon = 0.04 * perimeter
+
+        approx = cv2.approxPolyDP(
+            contour,
+            epsilon,
+            True
+        )
+
+    if len(approx) != 4:
+        raise ValueError(
+            f"Could not find exactly four corners. "
+            f"Detected {len(approx)} points."
+        )
+
+    # Extract coordinates
+    corners = approx.reshape(4, 2)
+
+    # Order corners
+    corners = order_corners(corners)
+
+    return corners
