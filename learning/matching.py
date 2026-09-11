@@ -640,7 +640,7 @@ def find_object_axes(binary_image):
     return centroid, eigenvalues, eigenvectors, T
 
 
-def draw_object_axes(image, centroid, eigenvectors, eigenvalues):
+def draw_object_axes(image, centroid, eigenvectors, eigenvalues, scale=1.0, primary_color=(255, 0, 0), secondary_color=(0, 255, 0)):
     """
     Draw centroid and PCA axes on the image.
 
@@ -654,6 +654,17 @@ def draw_object_axes(image, centroid, eigenvectors, eigenvalues):
         Eigenvectors show the direction of the axes.
     eigenvalues: np.array
         Eigenvalues show the length of the axes.
+    scale: float, default ``1.0``
+        Scaling the axes.
+    primary_color: tuple, default ``(255, 0, 0)``
+        Primary color ``(blue, green, red)``.
+        For saving figures using ``cv2.imwrite()`` function,
+        use ``(0, 0, 255)`` as this will provide red colour.
+        While using in jupyter notebook with matplotlib,
+        use the default value to get red, and green for major
+        and minor axis, respectively.
+    secondary_color: tuple, default ``(0, 255, 0)``
+        Axis colour for the secondary axis.
 
     Returns
     -------
@@ -661,56 +672,22 @@ def draw_object_axes(image, centroid, eigenvectors, eigenvalues):
         A numpy array of image with renderings of axes.
         
     """
-    output = cv2.cvtColor(image, cv2.COLOR_GRAY2BGR)
+    # Checking if the input is colour image
+    if len(image.shape) == 3:
+        output = image
+    else:
+        output = cv2.cvtColor(image, cv2.COLOR_GRAY2BGR)
 
-    cx, cy = centroid
+    for i in range(2):
+        length = scale * np.sqrt(eigenvalues[i])
+        end_point = centroid + length * eigenvectors[:, i]
+        end_point = tuple(np.int32(end_point))
 
-    # Length of axes for visualization
-    scale = 3.0
+        if i == 0:
+            color = primary_color
+        else:
+            color = secondary_color
 
-    # Length based on object size
-    length1 = scale * np.sqrt(eigenvalues[0])
-    length2 = scale * np.sqrt(eigenvalues[1])
-
-    # Major axis
-    p1 = np.array([
-        cx - eigenvectors[0, 0] * length1,
-        cy - eigenvectors[1, 0] * length1
-    ])
-
-    p2 = np.array([
-        cx + eigenvectors[0, 0] * length1,
-        cy + eigenvectors[1, 0] * length1
-    ])
-
-    # Minor axis
-    p3 = np.array([
-        cx - eigenvectors[0, 1] * length2,
-        cy - eigenvectors[1, 1] * length2
-    ])
-
-    p4 = np.array([
-        cx + eigenvectors[0, 1] * length2,
-        cy + eigenvectors[1, 1] * length2
-    ])
-
-    # Convert to integer pixel coordinates
-    p1 = tuple(np.round(p1).astype(int))
-    p2 = tuple(np.round(p2).astype(int))
-    p3 = tuple(np.round(p3).astype(int))
-    p4 = tuple(np.round(p4).astype(int))
-
-    # Draw axes
-    cv2.line(output, p1, p2, (0, 0, 255), 2)  # Major axis
-    cv2.line(output, p3, p4, (0, 255, 0), 2)  # Minor axis
-
-    # Draw centroid
-    cv2.circle(
-        output,
-        (int(round(cx)), int(round(cy))),
-        5,
-        (255, 0, 0),
-        -1
-    )
+        output = cv2.arrowedLine(output, np.int32(centroid), end_point, color, 2, tipLength=0.1)
 
     return output
