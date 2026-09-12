@@ -5,6 +5,8 @@ import matplotlib.pyplot as plt
 import cv2
 import pandas as pd
 import copy
+import datetime
+import time
 
 sys.path.append('../')
 
@@ -206,6 +208,12 @@ class MatchingDataCollection:
         if self.bg is None:
             raise ValueError("No background image has been captured.")
 
+        timestamp = int(time.time())
+        ct = datetime.datetime.now()
+        date = ct.strftime("%Y-%m-%d-%H-%M")
+
+        save_path = os.path.join(save_path, str(date))
+
         bg_left, bg_right = self.bg
 
         bg_path = os.path.join(save_path, "bg")
@@ -239,6 +247,9 @@ class MatchingDataCollection:
         Parameters
         ----------
         save_path : str
+            Give the entire save path to the root directory along with
+            the subdirectory named with timestamp with date format.
+            This subdirectory will include ``bg`` and ``fg`` subdirectory.
             Path to a directory containing ``bg`` and ``fg``
             subdirectories.
 
