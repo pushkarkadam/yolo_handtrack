@@ -752,3 +752,52 @@ def learned_projections(T_PW, coords):
     projected_coords = T_PW @ coords.T
 
     return projected_coords.T[:,:-1]
+
+def map_projection_rendering(src, dst, coords, projections, point_color=(0, 255, 0), line_color=(255, 0, 0)):
+    """Maps the projection of the coordinates from the src image to dst image.
+
+    Parameters
+    ----------
+    src: numpy.ndarray
+        Source image.
+    dst: numpy.ndarray
+        Destination image.
+    coords: numpy.ndarray
+        Coordinates of size ``m x 2``.
+    projections: numpy.ndarray
+        Projections of size ``m x 2``.
+    point_color: tuple, default ``(0, 255, 0)``
+        Colour of the coordinate points.
+        Default value is green.
+    line_color: tuple, default ``(255, 0, 0)``
+        Colour for the line. Default value is blue.
+
+    Returns
+    -------
+    combined_image: numpy.ndarray
+        The image combined with the matching renderings.
+        
+    """
+    # Extracting image dimensions
+    h, w = src.shape[:2]
+
+    # horizontal stack the image
+    combined_image = np.hstack((src, dst))
+
+    # Iterate through the coordinates and draw matching elements
+    for coord, proj in zip(coords, projections):
+        
+        # point on src image remain where they are
+        c = (int(coord[0]), int(coord[1]))
+
+        # offsetting the points in dst image by the width of src image
+        p = (int(proj[0] + w), int(proj[1]))
+
+        # Draw circles at the coordinate locations
+        cv2.circle(combined_image, c, 4, point_color, -1) 
+        cv2.circle(combined_image, p, 4, point_color, -1)
+        
+        # Draw a connecting line between the matched points
+        cv2.line(combined_image, c, p, line_color, 2)
+
+    return combined_image
