@@ -721,3 +721,34 @@ def image_transformation_matrix(T_WO, T_PO):
     T_PW = T_PO @ np.linalg.inv(T_WO)
 
     return T_PW
+
+def learned_projections(T_PW, coords):
+    """Projects the coordinates using a learned transformation matrix :math:`{P}^T_W`.
+
+    Parameters
+    ----------
+    T_PW: numpy.ndarray
+        A learned transformation matrix.
+    coords: numpy.ndarray
+        A list of coordinates of size ``m x 2`` where ``m`` is the number of coordinates
+        to be transformed to the new coordinate frame.
+
+    Returns
+    -------
+    transformed_coords: numpy.ndarray
+        A transformed coordinate matrix.
+        
+    """
+
+    # Extracting the number of coordinates
+    m, _ = coords.shape
+
+    # Vector of ones for the homogeneous transformation of the coordinates
+    ones = np.ones((m, 1))
+
+    # Horizontal stacking
+    coords = np.hstack((coords, ones))
+
+    projected_coords = T_PW @ coords.T
+
+    return projected_coords.T[:,:-1]
