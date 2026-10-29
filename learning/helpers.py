@@ -359,7 +359,7 @@ def sim_transformation_matrix(theta):
 
     return T
 
-def transform_object_points(points, T, xm, ym, sx=1, sy=1):
+def transform_object_points(points, T, mid_points, translations=(0, 0), sx=1, sy=1):
     """Transforms the points using T transformation matrix
     and mirrors across the y axis.
 
@@ -369,10 +369,10 @@ def transform_object_points(points, T, xm, ym, sx=1, sy=1):
         Points of the polygon.
     T: numpy.ndarray
         Rotation matrix.
-    xm: int
-        Centre x coordinate of the object.
-    ym: int
-        Centre y coorindate of the object.
+    mid_points: tuple
+        A tuple of mid points of type ``int``
+    translations: tuple, default ``(0, 0)``
+        Translation along x and y axes.
     sx: float
         Scaling in x direction.
     sy: float
@@ -386,7 +386,7 @@ def transform_object_points(points, T, xm, ym, sx=1, sy=1):
     Examples
     --------
     >>> T = sim_transformation_matrix(np.deg2rad(50))
-    >>> transform_object_points(points, T, xm, ym)
+    >>> transform_object_points(points, T, (200, 300), translations=(100,0), sx=0.2, sy=0.3)
     
     """
 
@@ -396,6 +396,8 @@ def transform_object_points(points, T, xm, ym, sx=1, sy=1):
     p = np.column_stack((points, np.ones(n).reshape(n,1)))
 
     # Constructing the object to world transformation matrix
+    xm, ym = mid_points
+    
     T_wo = np.array([[1, 0, xm],
                   [0, 1, ym], 
                   [0, 0, 1]])
@@ -405,13 +407,71 @@ def transform_object_points(points, T, xm, ym, sx=1, sy=1):
                   [0, sy, 0],
                   [0, 0, 1]])
 
+    tx, ty = translations   
+    
+    # Translation matrix
+    Tr = np.array([[1, 0, tx],
+                  [0, 1, ty], 
+                  [0, 0, 1]])
+
     
     # Transforming the object with rotation matrix T and the object to origin matrix.
     # T_wo ensures that the points are projected w.r.t to the world orgin.    
     # S is the matrix that will be used to change the scale
-    T_wp = T_wo @ T @ S
+    T_wp = T_wo @ Tr @ T @ S
 
     # projecting the points
     q = T_wp @ p.T
 
     return q.T[:,:-1]
+
+def generate_simulated_images(theta, object_shape, scaling=(1,1), translations=(0,0), image_shape=(376, 672)):
+    """A combined function that generates the images based on the data
+    provided.
+
+    Parameters
+    ----------
+    theta: float
+        Angle of rotation
+    object_shape: tuple
+        Tuple in the form ``(xm, ym, w, h)``
+    scaling: tuple, default ``(1, 1)``
+        Scaling values corresponding to ``sx`` and ``sy`` in the
+        scaling transformation matrix.
+    translations: tuple, default ``(0, 0)``
+        Translation values in x and y direction 
+        for translation transformation matrix.
+    image_shape: tuple, default ``(376, 672)``
+        Shape of the image generated.
+
+    Returns
+    -------
+    base_bg_mask: numpy.ndarray
+        Base image used in demonstration.
+    lr_bg_mask: numpy.ndarray
+        Learning image used to project.
+
+    Examples
+    --------
+    >>> base_bg_mask, lr_bg_mask = generate_simulated_images(theta=30, object_shape=(200, 200, 100, 200), scaling=(0.5, 0.5), translations=(200, 0))
+    
+    """
+    xm, ym, w, h = object_shape
+
+    sx, sy = scaling
+
+    tx, ty = translations
+
+    points = rectangle_object_corners(0, 0, w, h)
+
+    points_mask = generate_mask_points(points, xm, ym)
+
+    base_bg_mask = generate_mask_image(points_mask.astype(np.int32))
+
+    T = sim_transformation_matrix(np.deg2rad(theta))
+
+    transformed_points = transform_object_points(points, T, (xm, ym), translations=(tx, ty), sx=sx, sy=sy)
+
+    lr_bg_mask = generate_mask_image(transformed_points.astype(np.int32))
+
+    return base_bg_mask, lr_bg_mask
