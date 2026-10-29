@@ -248,3 +248,170 @@ def learn_detect(bg_image, base_image, lr_image, seam_path):
                  }
 
     return learned_coords, T_PW, image_dict
+
+def rectangle_object_corners(xm, ym, w, h):
+    """Returns the corners of rectangle.
+
+    In order to get started, first make sure
+    that the object is centered at the axis coordinates.
+    This means that set ``xm = 0`` and ``ym = 0``
+    to ensure that object's origin is at the centre.
+    
+    Paramters
+    ---------
+    xm: int
+        Middle point for x.
+    ym: int
+        Middle point for y.
+    w: int
+        Width along x.
+    h: int
+        Height along y.
+
+    Returns
+    -------
+    points: numpy.array
+        A list of corner points.
+
+    Examples
+    --------
+    >>> rectangle_object_corners(0, 0, 200, 200)
+        
+    """
+    # Creating points
+    points = np.array([[xm - int(w/2), ym + int(h/2)],
+                       [xm + int(w/2), ym + int(h/2)],
+                       [xm + int(w/2), ym - int(h/2)],
+                       [xm - int(w/2), ym - int(h/2)]
+                      ])
+    
+    return points
+
+def generate_mask_image(points, image_size=(376, 672)):
+    """Generates an image mask.
+    
+    Parameters
+    ----------
+    points: numpy.array
+        Points of the polygon of type ``numpy.int32``.
+    image_size: tuple, default ``(376, 672)``
+        Size of the image.
+
+    """
+
+    bg_mask = np.zeros(image_size, dtype=np.uint8)
+
+    points = points.reshape((-1, 1, 2))
+
+    cv2.fillPoly(bg_mask, [points], color=(255, 255 ,255))
+
+    return bg_mask
+
+def generate_mask_points(points, xm, ym):
+    """Generates points for creating image mask.
+
+    This is required to bring the points back from the
+    origin of the image.
+
+    Parameters
+    ----------
+    points: numpy.array
+        Points.
+    xm: int
+        x mid point.
+    ym: int
+        y mid point.
+    
+    """
+    T_wo = np.array([[1, 0, xm],
+                     [0, 1, ym], 
+                     [0, 0, 1]])
+
+    # Extracting array size
+    n = points.shape[0]
+
+    points_mask = T_wo @ np.column_stack((points, np.ones(n).reshape(n,1))).T
+
+    return points_mask.T[:,:-1]
+
+def sim_transformation_matrix(theta):
+    """Simulates a transformation matrix.
+
+    Parameters
+    ----------
+    theta: float
+        Angle of rotation in radians.
+
+    Returns
+    -------
+    T: numpy.ndarray
+        A transformation matrix with pure rotation.
+
+    Examples
+    --------
+    >>> T = sim_transformation_matrix(np.deg2rad(50))
+    
+    """
+
+    T = np.array([[np.cos(theta), -np.sin(theta), 0],
+                  [np.sin(theta), np.cos(theta), 0],
+                  [0, 0, 1]])
+
+    return T
+
+def transform_object_points(points, T, xm, ym, sx=1, sy=1):
+    """Transforms the points using T transformation matrix
+    and mirrors across the y axis.
+
+    Parameters
+    ----------
+    points: numpy.ndarray
+        Points of the polygon.
+    T: numpy.ndarray
+        Rotation matrix.
+    xm: int
+        Centre x coordinate of the object.
+    ym: int
+        Centre y coorindate of the object.
+    sx: float
+        Scaling in x direction.
+    sy: float
+        Scaling in y direction.
+
+    Returns
+    -------
+    nd.array
+        A matrix of transformed points.
+
+    Examples
+    --------
+    >>> T = sim_transformation_matrix(np.deg2rad(50))
+    >>> transform_object_points(points, T, xm, ym)
+    
+    """
+
+    n = points.shape[0]
+    
+    # Adding a column of ones 
+    p = np.column_stack((points, np.ones(n).reshape(n,1)))
+
+    # Constructing the object to world transformation matrix
+    T_wo = np.array([[1, 0, xm],
+                  [0, 1, ym], 
+                  [0, 0, 1]])
+
+    # Scaling matrix
+    S = np.array([[sx, 0, 0],
+                  [0, sy, 0],
+                  [0, 0, 1]])
+
+    
+    # Transforming the object with rotation matrix T and the object to origin matrix.
+    # T_wo ensures that the points are projected w.r.t to the world orgin.    
+    # S is the matrix that will be used to change the scale
+    T_wp = T_wo @ T @ S
+
+    # projecting the points
+    q = T_wp @ p.T
+
+    return q.T[:,:-1]
