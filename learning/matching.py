@@ -872,3 +872,41 @@ def object_to_image_transform(corner_points):
     T = np.column_stack((pn, sn, a1))
     
     return T, a1, p, t
+
+def scaling_matrix(pb, pl, tb, tl):
+    """Generates scaling matrix.
+
+    The scaling matrix is a result of ratio
+    of (base / learning) of the vector p and t
+    that are orthogonal to each other forming
+    the frame of the objects in each of the 
+    images.
+
+    Parameters
+    ----------
+    pb: numpy.ndarray
+        A vector corresponding x axis of object frame of base.
+    bl: numpy.ndarray
+        A vector corresponding x axis of object frame of learning.
+    tb: numpy.ndarray
+        A vector corresponding y axis of object frame of base.
+    tl: numpy.ndarray
+        A vector corresponding y axis of object frame of learning.
+    
+    Returns
+    -------
+    S: numpy.ndarray
+        A transformation matrix used to scale up or down the object.
+        
+    """
+
+    sp = np.linalg.norm(pl) / np.linalg.norm(pb)
+
+    st = np.linalg.norm(tl) / np.linalg.norm(tb)
+
+    S = np.array([[sp, 0 , 0],
+                  [0, st, 0],
+                  [0, 0, 1]
+                 ])
+
+    return S                                                                                                                                                                                                                                                                                                                                                                                                                                                    
