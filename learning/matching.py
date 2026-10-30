@@ -909,4 +909,76 @@ def scaling_matrix(pb, pl, tb, tl):
                   [0, 0, 1]
                  ])
 
-    return S                                                                                                                                                                                                                                                                                                                                                                                                                                                    
+    return S
+
+def draw_corner_axes(image_mask, a1, p, t, thickness=3, tipLength=0.1):
+    """Draws axes at the corner points.
+
+    Parameters
+    ----------
+    image_mask: numpy.ndarray
+        Image mask.
+    a1: numpy.ndarray
+        Origin vector. Ideally, at the left corner of the object
+        closer to the image.
+    p: numpy.ndarray
+        Vector corresponding to the x-axis of the object.
+    t: numpy.ndarray
+        Vector corresponding to the x-axis of the object.
+    thickness: int, default ``3``
+        Thickness of the axes.
+    tipLength: float, default ``0.1``
+        Length of the tip.
+
+    Returns
+    -------
+    image_render: numpy.ndarray
+        Image with axes rendering.
+        
+    """
+
+    # Finding end points of the two axes.
+    # a1 is the origin (start) point.
+    e1 = a1 + p
+    e2 = a1 + t
+
+    # Converting the image to color channel
+    image_render = cv2.cvtColor(image_mask, cv2.COLOR_GRAY2BGR)
+
+    # x axis - red colour
+    cv2.arrowedLine(image_render, a1[:-1].astype(np.int32), e1[:-1].astype(np.int32), (255, 0, 0), thickness, tipLength=tipLength)
+    
+    # y axis - green colour
+    cv2.arrowedLine(image_render, a1[:-1].astype(np.int32), e2[:-1].astype(np.int32), (0, 255, 0), thickness, tipLength=tipLength)
+
+    return image_render
+
+
+def base_to_learn_transform(T_PO, T_WD, T_DO):
+    """Generates transformation matrix T_PW from 
+    {W} to {P} coordinates.
+    
+    T_DO is the transformation matrix from learn object
+    to demonstration (base) object.
+    This is the scaling transformation matrix ``S``.
+    If both the objects are of the same size, that is no 
+    scaling is involved, then T_DO will be a 3x3 identity
+    matrix.
+
+    Parameters
+    ----------
+    T_PO: numpy.ndarray
+        Transformation matrix from learning object 
+        ``{O}`` to learning image frame ``{P}``.
+    T_WD: numpy.ndarray
+        Tranformation matrix from demonstration object
+        ``{D}`` to demonstation (base) frame ``{W}``.
+    T_DO: numpy.ndarray
+        Object similarity matrix between learning object ``{O}``
+        and the demonstration object ``{D}``.
+    
+    """
+
+    T_PW = T_PO @ np.linalg.inv(T_WD @ T_DO)
+
+    return T_PW                                                                                                                                                                                                                                                                                                                                                                                                                                     
