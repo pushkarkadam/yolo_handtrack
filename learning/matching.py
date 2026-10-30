@@ -812,3 +812,63 @@ def map_projection_rendering(src, dst, coords, projections, point_color=(0, 255,
         cv2.line(combined_image, c, p, line_color, 2)
 
     return combined_image
+
+def object_to_image_transform(corner_points):
+    """Constructs the object to image transformation matrix.
+    
+    This method uses the corner points to compute the object to 
+    world (image) transformation matrix.
+
+    The function also returns other vectors which will be useful for
+    rendering the corner axes.
+
+    Parameters
+    ----------
+    corner_points: numpy.ndarray
+        Corner points for the object.
+
+    Returns
+    -------
+    T: numpy.ndarray
+        Transformation from object to image.
+    a1: numpy.ndarray
+        A vector at the origin of the object.
+    p: numpy.ndarray
+        A vector aligned with the positive x axis of the object.
+    t: numpy.ndarray
+        A vector orthogonal to p.
+
+    Examples
+    --------
+    >>> T_WD, a1b, pb, tb = object_to_image_transform(base_corner_points) 
+    
+    """
+    # Shape of the corner points matrix
+    n = corner_points.shape[0]
+
+    # Selecting three points
+    a1, a2, a3 = np.column_stack((corner_points, np.zeros((n, 1)).reshape(n,1)))[:3]
+    
+    p = a2 - a1
+    q = a3 - a1
+
+    # normalising the vectors (unit vectors)
+    pn =  p / np.linalg.norm(p)
+    qn = q / np.linalg.norm(q)
+
+    # cross product to find the unit vector along z axis
+    rn = np.cross(pn, qn)
+
+    # cross product to find the orthogonal vector to the x axis
+    tn = np.cross(rn, pn)
+
+    # Rescaling the unit vector to its original size
+    t = tn * np.linalg.norm(q)
+
+    # Finding the unit vector in the new direction orthogonal to x axis
+    sn = t / np.linalg.norm(t)
+    
+    # Transformation matrix from object to world (world being image origin)
+    T = np.column_stack((pn, sn, a1))
+    
+    return T, a1, p, t
