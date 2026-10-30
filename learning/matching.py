@@ -869,7 +869,7 @@ def object_to_image_transform(corner_points):
     sn = t / np.linalg.norm(t)
     
     # Transformation matrix from object to world (world being image origin)
-    T = np.column_stack((pn, sn, a1))
+    T = np.column_stack((pn, sn, [a1[0], a1[1], 1]))
     
     return T, a1, p, t
 
