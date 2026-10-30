@@ -900,9 +900,9 @@ def scaling_matrix(pb, pl, tb, tl):
         
     """
 
-    sp = np.linalg.norm(pl) / np.linalg.norm(pb)
+    sp = np.linalg.norm(pb) / np.linalg.norm(pl)
 
-    st = np.linalg.norm(tl) / np.linalg.norm(tb)
+    st = np.linalg.norm(tb) / np.linalg.norm(tl)
 
     S = np.array([[sp, 0 , 0],
                   [0, st, 0],
