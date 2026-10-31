@@ -416,37 +416,58 @@ def background_subtraction(bg, fg, kernel_size=(5,5), save_path=''):
 
 def order_corners(points):
     """
-    Order four points as:
-        top-left
-        top-right
-        bottom-right
-        bottom-left
+    Order an arbitrary number of points clockwise,
+    starting from the top-left-most point.
+
+    Parameters
+    ----------
+    points : numpy.ndarray
+        Array of shape (N, 2).
+
+    Returns
+    -------
+    ordered_points : numpy.ndarray
+        All points ordered clockwise.
     """
 
     points = np.asarray(points, dtype=np.float32)
 
-    # Sum and difference of coordinates
-    s = points.sum(axis=1)
-    d = np.diff(points, axis=1).flatten()
+    if len(points) < 3:
+        raise ValueError("At least three points are required.")
 
-    top_left = points[np.argmin(s)]
-    bottom_right = points[np.argmax(s)]
+    # Calculate centroid
+    center = np.mean(points, axis=0)
 
-    top_right = points[np.argmin(d)]
-    bottom_left = points[np.argmax(d)]
+    # Calculate angle of each point relative to centroid
+    angles = np.arctan2(
+        points[:, 1] - center[1],
+        points[:, 0] - center[0]
+    )
 
-    return np.array([
-        top_left,
-        top_right,
-        bottom_right,
-        bottom_left
-    ], dtype=np.float32)
+    # Sort points by angle
+    sorted_indices = np.argsort(angles)
+    ordered_points = points[sorted_indices]
+
+    # Rotate ordering to start from top-left-most point
+    start_idx = np.argmin(
+        ordered_points[:, 0] + ordered_points[:, 1]
+    )
+
+    ordered_points = np.roll(
+        ordered_points,
+        -start_idx,
+        axis=0
+    )
+
+    return ordered_points.astype(np.float32)
 
 
-def find_rectangle_corners(mask):
+def find_rectangle_corners(mask, epsilon_ratio=0.01):
     """
-    Find the four corners of the largest rectangular object
-    in a binary mask.
+    Find all corners of the largest object in a binary mask.
+
+    The function supports an arbitrary number of corners rather
+    than restricting the detected polygon to exactly four vertices.
 
     Parameters
     ----------
@@ -454,11 +475,17 @@ def find_rectangle_corners(mask):
         Binary image. Object should be white (255),
         background should be black (0).
 
+    epsilon_ratio : float
+        Approximation accuracy relative to contour perimeter.
+        Smaller values preserve more contour details and vertices.
+        Larger values produce simpler polygons.
+
     Returns
     -------
     corners : numpy.ndarray
-        Four corners in order:
-        [top-left, top-right, bottom-right, bottom-left]
+        All detected polygon vertices, ordered clockwise,
+        starting from the top-left-most vertex.
+        Shape: (N, 2).
     """
 
     # Find contours
@@ -474,12 +501,11 @@ def find_rectangle_corners(mask):
     # Select largest contour
     contour = max(contours, key=cv2.contourArea)
 
-    # Perimeter of contour
+    # Calculate contour perimeter
     perimeter = cv2.arcLength(contour, True)
 
     # Approximate contour with polygon
-    # Try different epsilon values if necessary
-    epsilon = 0.02 * perimeter
+    epsilon = epsilon_ratio * perimeter
 
     approx = cv2.approxPolyDP(
         contour,
@@ -487,28 +513,15 @@ def find_rectangle_corners(mask):
         True
     )
 
-    # We expect four corners
-    if len(approx) != 4:
+    # Extract all detected vertices
+    corners = approx.reshape(-1, 2)
 
-        # Try a slightly larger approximation
-        epsilon = 0.04 * perimeter
-
-        approx = cv2.approxPolyDP(
-            contour,
-            epsilon,
-            True
-        )
-
-    if len(approx) != 4:
+    if len(corners) < 3:
         raise ValueError(
-            f"Could not find exactly four corners. "
-            f"Detected {len(approx)} points."
+            f"Insufficient vertices detected: {len(corners)}"
         )
 
-    # Extract coordinates
-    corners = approx.reshape(4, 2)
-
-    # Order corners
+    # Order all detected vertices
     corners = order_corners(corners)
 
     return corners
