@@ -861,28 +861,27 @@ def object_to_image_transform(corner_points):
 
     # Selecting three points
     a1, a2, a3 = np.column_stack((corner_points, np.zeros((n, 1)).reshape(n,1)))[:3]
-    
+
+    # Using only one vector for x axis determination of the object.
     p = a2 - a1
-    q = a3 - a1
 
     # normalising the vectors (unit vectors)
     pn =  p / np.linalg.norm(p)
-    qn = q / np.linalg.norm(q)
 
-    # cross product to find the unit vector along z axis
-    rn = np.cross(pn, qn)
+    # Keeping a consitent orthogonal unit vector with the image plane
+    rn = np.array([0, 0, 1])
+    
+    # Computing the y axis equivalent of the object
+    qn = np.cross(rn, pn)
 
-    # cross product to find the orthogonal vector to the x axis
-    tn = np.cross(rn, pn)
-
-    # Rescaling the unit vector to its original size
-    t = tn * np.linalg.norm(q)
-
-    # Finding the unit vector in the new direction orthogonal to x axis
-    sn = t / np.linalg.norm(t)
+    # Scaling the vector to determine the axis.
+    # In this implementation, both x and y scaling will be same.
+    # This means that scaling will happen simultaneously in both 
+    # direction
+    t = qn * np.linalg.norm(p)
     
     # Transformation matrix from object to world (world being image origin)
-    T = np.column_stack((pn, sn, [a1[0], a1[1], 1]))
+    T = np.column_stack((pn, qn, [a1[0], a1[1], 1]))
     
     return T, a1, p, t
 
