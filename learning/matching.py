@@ -344,7 +344,7 @@ class MatchingDataCollection:
 
             i += 1
 
-def background_subtraction(bg, fg, kernel_size=(5,5), save_path=''):
+def background_subtraction(bg, fg, kernel_size=(5,5), dilation_kernel_size=(3,3), save_path=''):
     """Performs background subtraction.
     
     Parameters
@@ -355,6 +355,8 @@ def background_subtraction(bg, fg, kernel_size=(5,5), save_path=''):
         A numpy array of colour image with object.
     kernel_size: tuple, default ``(5, 5)``
         Kernel size for erosion morphological operation.
+    dilation_kernel_size: tuple, default ``(3, 3)``
+        Kernel to perform dilation
     save_path: str, default ``''``
         Path to save the data.
         
@@ -400,6 +402,9 @@ def background_subtraction(bg, fg, kernel_size=(5,5), save_path=''):
             255,
             thickness=cv2.FILLED
         )
+
+        dilation_kernel = np.ones(dilation_kernel_size, np.uint8)
+        object_mask = cv2.dilate(object_mask, kernel=dilation_kernel, iterations=1)
     
         # Create completely black output
         output = np.zeros_like(fg)
