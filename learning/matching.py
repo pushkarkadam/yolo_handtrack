@@ -993,4 +993,31 @@ def base_to_learn_transform(T_PO, T_WD, T_DO):
 
     T_PW = T_PO @ np.linalg.inv(T_WD @ T_DO)
 
-    return T_PW                                                                                                                                                                                                                                                                                                                                                                                                                                     
+    return T_PW     
+
+def rotation_difference(T_WD, T_PO):
+    """Computes the rotation angle between the base
+    object and the learning object.
+
+    Parameters
+    ----------
+    T_WD: numpy.ndarray
+        Tranformation matrix from demonstration object
+        ``{D}`` to demonstation (base) frame ``{W}``.
+    T_PO: numpy.ndarray
+        Transformation matrix from learning object 
+        ``{O}`` to learning image frame ``{P}``.
+    
+    Returns
+    -------
+    psi: float
+        The difference between the angles of the base object and learned obejct.
+    
+    """
+
+    theta_D = np.arccos(T_WD[0][0])
+    theta_O = np.arccos(T_PO[0][0])
+
+    psi = theta_D - theta_O
+
+    return psi                                                                                                                                                                                                                                                                                                                                                                                                                                  
