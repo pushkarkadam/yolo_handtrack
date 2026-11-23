@@ -1025,4 +1025,27 @@ def rotation_difference(T_WD, T_PO):
 
     psi = theta_D - theta_O
 
-    return psi                                                                                                                                                                                                                                                                                                                                                                                                                                  
+    return psi               
+
+def get_translation(T):
+    """Provides the translation vector values
+    from the given transformation matrix.
+
+    Parameters
+    ----------
+    T: numpy.ndarray
+        Transformation matrix.
+
+    Returns
+    -------
+    tx: float
+        x component of translation vector.
+    ty: float
+        y component of translation vector.
+    
+    """
+
+    tx = T[0][-1]
+    ty = T[1][-1]
+
+    return tx, ty                                                                                                                                                                                                                                                                                                                                                                                                                   
