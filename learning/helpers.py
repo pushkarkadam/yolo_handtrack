@@ -475,3 +475,89 @@ def generate_simulated_images(theta, object_shape, scaling=(1,1), translations=(
     lr_bg_mask = generate_mask_image(transformed_points.astype(np.int32))
 
     return base_bg_mask, lr_bg_mask
+
+def error_analysis(data_path, source_idx, target_idx, scale_gt=1):
+    """Performs error analysis.
+
+    Parameters
+    ----------
+    data_path: str
+        Path where the data is stored.
+    source_idx: int
+        Index of the source weldment image.
+    target_idx: int
+        Index of the target weldment image.
+    scale_gt: int
+        Scale of the testing object.
+
+    Returns
+    -------
+    psi_error: float
+        Error in rotation angle.
+    a1_source_error: np.ndarray
+        Translation error in pixels for source weldment.
+    a1_target_error: np.ndarray
+        Translation error in pixels for target weldment.
+    s_error: float
+        Error in scale
+    
+    """
+
+    bg_image, base_image, lr_image, tracks = lng.helpers.load_learning_data(data_path, 
+                                                                            base_idx=source_idx, 
+                                                                            lr_idx=target_idx)
+
+    # demonstration image
+    base_bg_sub, base_bg_mask = lng.matching.background_subtraction(bg_image, base_image)
+    
+    # learning image
+    lr_bg_sub, lr_bg_mask = lng.matching.background_subtraction(bg_image, lr_image)
+
+    # corner points
+    base_corner_points = lng.matching.find_rectangle_corners(base_bg_mask)
+    lr_corner_points = lng.matching.find_rectangle_corners(lr_bg_mask)
+
+    # object pose
+    T_WD, a1b, pb, tb = lng.matching.object_to_image_transform(base_corner_points) 
+
+    T_PO, a1l, pl, tl = lng.matching.object_to_image_transform(lr_corner_points)
+
+    T_DO = lng.matching.scaling_matrix(pb, pl, tb, tl)
+
+    T_PW = lng.matching.base_to_learn_transform(T_PO, T_WD, T_DO)
+
+    # actual object rotation
+    psi_act = lng.matching.rotation_difference(T_WD, T_PO)
+
+    # -----------------------
+    # Ground truth evaluation
+    # -----------------------
+
+    # source
+    base_axes_data = os.path.join(data_path, 'fg' , f'fg_left{source_idx}_axes.npz')
+
+    base_axes_data = np.load(base_axes_data)
+
+    T_base = base_axes_data['T']
+    a1_base = base_axes_data['a1']
+
+    # target
+    lr_axes_data = os.path.join(data_path, 'fg' , f'fg_left{target_idx}_axes.npz')
+
+    lr_axes_data = np.load(lr_axes_data)
+
+    T_lr = lr_axes_data['T']
+    a1_lr = lr_axes_data['a1']
+
+    psi_gt = lng.matching.rotation_difference(T_base, T_lr)
+
+    # Error calculations
+    psi_error = np.abs(psi_act - psi_gt)
+
+    a1_source_error = np.abs(a1b - a1_base)
+
+    a1_target_error = np.abs(a1l - a1_lr)
+
+    s_error = np.abs(scale_gt - T_DO[0][0])
+
+    return psi_error, a1_source_error, a1_target_error, s_error
