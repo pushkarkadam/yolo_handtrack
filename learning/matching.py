@@ -865,7 +865,7 @@ def object_to_image_transform(corner_points):
     n = corner_points.shape[0]
 
     # Selecting three points
-    a1, a2, a3 = np.column_stack((corner_points, np.zeros((n, 1)).reshape(n,1)))[:3]
+    a1, a2 = np.column_stack((corner_points, np.zeros((n, 1)).reshape(n,1)))[:2]
 
     # Using only one vector for x axis determination of the object.
     p = a2 - a1
