@@ -344,6 +344,100 @@ class MatchingDataCollection:
 
             i += 1
 
+class DataCollectionPipeline(MatchingDataCollection):
+    """This class inherits from MatchingDataCollection.
+
+    This provides additional benefit of checking the point clouds
+    and the weldment mask.
+
+    Parameters
+    ----------
+    save_path: str
+        Path where the data is saved to load.
+    camera_params_path: str
+        Path where the stereo camera parameters are saved for depth perception.
+
+    Examples
+    --------
+    >>> cam_param_dir = "2025-08-26-16-47"
+    >>> camera_params_path = os.path.join("../../data/calib/", cam_param_dir, 'stereo_calib.npz')
+    >>> matching_data = DataCollectionPipeline(None, camera_params_path)
+        
+    """
+    
+    def __init__(self, save_path, camera_params_path):
+        super().__init__(save_path)
+        self.camera_params_path = camera_params_path
+
+        self.cam_data = sc.helpers.load_calibration_data(camera_params_path)
+
+        self.point_cloud_dict = dict()
+        self.fg_masks = []
+
+    def point_clouds(self, image_list, set_num=0):
+        """Generates point clouds."""
+        if type(image_list) == tuple:
+            imgL, imgR = image_list
+        else:
+            imgL, imgR = image_list[set_num]
+
+        grayL, grayR = [cv2.cvtColor(image, cv2.COLOR_BGR2GRAY) for image in [imgL, imgR]]
+
+        # Stereo map generation
+        stereoMapL, stereoMapR = sc.depth_estimation.stereo_map(self.cam_data, image_shape=grayL.shape[::-1])
+        
+        
+        # Image rectification - hsv
+        rectL, rectR = sc.depth_estimation.rectify_images(imgL, imgR, stereoMapL, stereoMapR)
+        
+        # Depth map
+        disparity, camera_projection, depth_map, left_cut = sc.depth_estimation.depth_maps(rectL, 
+                                                                                            rectR, 
+                                                                                            self.cam_data['Q'],
+                                                                                            dispFactor=12, 
+                                                                                            blockSize=5,
+                                                                                            minDisparity=0,
+                                                                                            disp12MaxDiff=-1,
+                                                                                            preFilterCap=30,
+                                                                                            uniquenessRatio=1,
+                                                                                            speckleWindowSize=100, # range 50-200
+                                                                                            speckleRange=1, # range 1 or 2
+                                                                                            mode = 0,
+                                                                                            image_type='rgb',
+                                                                                            remove_stereo_blank=False
+                                                                                            )
+        
+        # point clouds 
+        pcd = sc.depth_estimation.point_cloud(rectL, 
+                                    depth_limits=(0,1), 
+                                    camera_projection=camera_projection, 
+                                    depth_map=depth_map,
+                                    left_cut=None, 
+                                    save_path=None, 
+                                    pcd_name=None,
+                                    cloud_frame_size=0.05)
+
+        self.point_cloud_dict['bg'] = pcd
+
+    def background_subtraction(self, fg_set_num=None):
+        """Background Subtraction."""
+        
+        # Uses the left image of backgroun
+        bg_left = self.bg[0]
+
+        if not self.fgs:
+            raise ValueError("Foreground image list is empty.")
+
+        if fg_set_num:
+            # selecting the left image of the foreground set
+            fg_left = self.fgs[fg_set_num][0]
+        else:
+            fg_left = self.fgs[-1][0]
+        
+        _, object_mask = lng.matching.background_subtraction(bg_left, fg_left)
+
+        self.fg_masks.append(object_mask)
+
 def background_subtraction(bg, fg, kernel_size=(5,5), dilation_kernel_size=(3,3), save_path=''):
     """Performs background subtraction.
     
