@@ -438,7 +438,7 @@ class DataCollectionPipeline(MatchingDataCollection):
 
         self.fg_masks.append(object_mask)
 
-def background_subtraction(bg, fg, kernel_size=(5,5), dilation_kernel_size=(3,3), save_path=''):
+def background_subtraction(bg, fg, kernel_size=(5,5), dilation_kernel_size=(3,3), save_path='', verbose=False):
     """Performs background subtraction.
     
     Parameters
@@ -479,7 +479,8 @@ def background_subtraction(bg, fg, kernel_size=(5,5), dilation_kernel_size=(3,3)
         cv2.CHAIN_APPROX_SIMPLE
     )
     
-    print(f'Number of contours: {len(contours)}')
+    if verbose:
+        print(f'Number of contours: {len(contours)}')
     
     if contours:
         # Assume the largest detected object is the foreground object
