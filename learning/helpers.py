@@ -565,3 +565,60 @@ def error_analysis(data_path, source_idx, target_idx, scale_gt=1):
     s_error = np.abs(scale_gt - T_DO[0][0])
 
     return psi_error, a1_source_error, a1_target_error, s_error
+
+def error_data_processing(data, image_indices, weldment_type, save_data_path=''):
+    """Processes the error data.
+
+    Parameters
+    ----------
+    data: list
+        A list of path to the directory where the data images are stored.
+    image_indices: list
+        A list of tuple where the first tupple is the source image index (usually ``0``) and
+        the second tuple is the list of target images index.
+    weldment_type: list
+        A list of the weldment types which corresponds to the ``data``.
+        ``data`` and ``weldment_type`` must have the same size.
+    save_data_path: str, default ``''``
+        Save path to store the data.
+
+    Returns
+    -------
+    df: pandas.DataFrame
+        A pandas dataframe object that has the data.
+
+    Examples
+    --------
+    >>> data = ['bg_sub_images/2026-11-25-16-15', 'bg_sub_images/2026-11-25-16-30']
+    >>> image_indices = [(0, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]), (0, [1, 2, 4, 5, 6, 7, 8, 9, 10, 11]),]
+    >>> weldment_type = ['line', 'composite1']
+        
+    """
+    # List to store the data
+    error_data = []
+    
+    # iterating over the data
+    for dp, idxs, weld_type in zip(data, image_indices, weldment_type):
+        source_idx = idxs[0]
+        target_idxs = idxs[1]
+    
+        for ix in target_idxs:
+    
+            psi_error, a1_source_error, a1_target_error, s_error = error_analysis(dp, 
+                                                                          source_idx, 
+                                                                          ix, 
+                                                                          scale_gt=1)
+    
+            dtx = a1_target_error[0]
+            dty = a1_target_error[1]
+            
+            row = [weld_type, psi_error, dtx, dty, s_error]
+    
+            error_data.append(row)
+    
+    df = pd.DataFrame(error_data, columns=['weldment_type', 'E_psi', 'E_tx', 'E_ty', 'E_s'])
+
+    if save_data_path:
+        df.to_csv('error_plot.csv', index=False)
+
+    return df
