@@ -622,3 +622,27 @@ def error_data_processing(data, image_indices, weldment_type, save_data_path='')
         df.to_csv('error_plot.csv', index=False)
 
     return df
+
+def get_stats(df, group_by_key='weldment_type', data_header='E_psi', verbose=False):
+    """Provides stats for box plot with IQR.
+    
+    Parameters
+    ----------
+    df: pandas.DataFrame
+        A pandas dataframe.
+
+    Returns
+    -------
+    stats: pandas.DataFrame
+        A pandas dataframe with all the IQR stats.
+        
+    """
+
+    stats = df_new.groupby(group_by_key)[data_header].describe(
+        percentiles=[0.25, 0.5, 0.75]
+    )
+
+    if verbose:
+        print(stats)
+
+    return stats
