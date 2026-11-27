@@ -53,8 +53,12 @@ def load_learning_data(data_path, lr_idx, base_idx=0, track_file=None):
     else: 
         track_coords_path = os.path.join(data_path, 'fg', f'fg_left{base_idx}_tracks.pkl')
 
-    with open(track_coords_path, 'rb') as f:
-        tracks = pickle.load(f)['tracks']
+    try:
+        with open(track_coords_path, 'rb') as f:
+            tracks = pickle.load(f)['tracks']
+    except Exception as e:
+        print(e)
+        tracks = None
 
     return bg_image, base_image, lr_image, tracks
 
