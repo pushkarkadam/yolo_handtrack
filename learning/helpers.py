@@ -4,6 +4,10 @@ import numpy as np
 import cv2
 import time
 import copy
+import seaborn as sns
+import pandas as pd
+import matplotlib.pyplot as plt
+import datetime
 
 import stereocam as sc
 import handtrack as ht
@@ -646,3 +650,72 @@ def get_stats(df, group_by_key='weldment_type', data_header='E_psi', verbose=Fal
         print(stats)
 
     return stats
+
+def generate_boxplot(
+    df,
+    x_col,
+    y_col,
+    x_label=None,
+    y_label=None,
+    title=None,
+    figsize=(6, 4),
+    x_rotation=45,
+    grid_alpha=0.3,
+    grid=True
+):
+    """
+    Generate a box plot using Seaborn and Matplotlib.
+
+    Parameters
+    ----------
+    df : pandas.DataFrame
+        Input dataframe.
+    x_col : str
+        Column heading for the x-axis.
+    y_col : str
+        Column heading for the y-axis.
+    x_label : str
+        X-axis label.
+    y_label : str
+        Y-axis label.
+    title : str
+        Plot title.
+    figsize : tuple
+        Figure size.
+    x_rotation : int
+        Rotation of x-axis tick labels.
+    grid_alpha : float
+        Grid transparency.
+    grid : bool
+        Display horizontal grid lines.
+    """
+
+    plt.figure(figsize=figsize)
+
+    sns.boxplot(
+        data=df,
+        x=x_col,
+        y=y_col,
+        color='white',
+        boxprops=dict(edgecolor='black'),
+        whiskerprops=dict(color='black'),
+        capprops=dict(color='black'),
+        medianprops=dict(color='black'),
+        flierprops=dict(
+            marker='o',
+            markerfacecolor='white',
+            markeredgecolor='black'
+        )
+    )
+
+    plt.xlabel(x_label if x_label else x_col)
+    plt.ylabel(y_label if y_label else y_col)
+    plt.title(title if title else f'{y_col} Distribution by {x_col}')
+
+    plt.xticks(rotation=x_rotation)
+
+    if grid:
+        plt.grid(axis='y', alpha=grid_alpha)
+
+    plt.tight_layout()
+    plt.show()
